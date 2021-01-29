@@ -7,7 +7,9 @@ Does a literate-ish emacs document make a good place to learn python and develop
 - [[https://orgmode.org/worg/org-contrib/babel/intro.html][Introduction to Babel]]
 - Use C-c ' within the code block to edit
 - Use C-c C-p within the editor to run it
+- [[https://docs.python.org/3.9/][Python Doc's]]
 - [[https://linuxhint.com/python_scripts_beginners_guide/][Python examples]]
+- In interactive python, =dir(cmd)= is a great boon!
 ** Use python3
 #+BEGIN_SRC bash
 python3 --version
@@ -16,14 +18,28 @@ python3 --version
 #+RESULTS:
 : Python 3.9.1
 
-#+BEGIN_SRC python :python python3 :results output
-  import sys
+#+BEGIN_SRC python :results output
   print ("Hello world!")
-  print (sys.version)
 #+END_SRC
 
 #+RESULTS:
 : Hello world!
+
+#+BEGIN_SRC python :results output
+  import sys
+  print (sys.version)
+#+END_SRC
+
+#+RESULTS:
+: 2.7.16 (default, Nov 23 2020, 08:01:20)
+: [GCC Apple LLVM 12.0.0 (clang-1200.0.30.4) [+internal-os, ptrauth-isa=sign+stri
+
+#+BEGIN_SRC python :python python3 :results output
+  import sys
+  print (sys.version)
+#+END_SRC
+
+#+RESULTS:
 : 3.9.1 (default, Jan  8 2021, 17:17:43)
 : [Clang 12.0.0 (clang-1200.0.32.28)]
 ** Take a filename as input -- doesn't seem to work in babel?
@@ -156,3 +172,24 @@ proper28
 proper29
 thanksgivingusa
 #+end_example
+
+* Output to files
+** Dump collects into directory =collects=
+#+BEGIN_SRC python :python python3 :results output
+  import csv, os
+  targetdir = "output/collects"
+  os.makedirs(targetdir, exist_ok=True)
+  count=0
+  with open("collects.csv", "r") as f:
+      reader = csv.reader(f)
+      for row in reader:
+          if row[0] == "Code": continue # Skip header row
+          if len(row[0])<3: continue   # Skip uncoded or badly coded rows
+          count+=1
+          with open (targetdir + "/" + row[0], "w") as t:
+            t.write(row[1])
+  print ("Wrote " + str(count) + " records")
+#+END_SRC
+
+#+RESULTS:
+: Wrote 89 records
