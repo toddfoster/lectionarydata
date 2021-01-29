@@ -1,0 +1,158 @@
+#+TITLE: Coding Python
+
+Does a literate-ish emacs document make a good place to learn python and develop the re-usable pieces I want for parsing lectionary data? Let's see.
+
+* Reference
+- [[https://linuxhint.com/configuring_emacs_python/][Configure like so]]
+- [[https://orgmode.org/worg/org-contrib/babel/intro.html][Introduction to Babel]]
+- Use C-c ' within the code block to edit
+- Use C-c C-p within the editor to run it
+- [[https://linuxhint.com/python_scripts_beginners_guide/][Python examples]]
+** Use python3
+#+BEGIN_SRC bash
+python3 --version
+#+END_SRC
+
+#+RESULTS:
+: Python 3.9.1
+
+#+BEGIN_SRC python :python python3 :results output
+  import sys
+  print ("Hello world!")
+  print (sys.version)
+#+END_SRC
+
+#+RESULTS:
+: Hello world!
+: 3.9.1 (default, Jan  8 2021, 17:17:43)
+: [Clang 12.0.0 (clang-1200.0.32.28)]
+** Take a filename as input -- doesn't seem to work in babel?
+#+BEGIN_SRC python :python python3 :results output :cmdline "a, b, c, 42"
+import sys
+if __name__ == "__main__":
+    print(f"Arguments count: {len(sys.argv)}")
+    for i, arg in enumerate(sys.argv):
+        print(f"Argument {i:>6}: {arg}")
+#+END_SRC
+
+#+RESULTS:
+: Arguments count: 1
+: Argument      0:
+
+** Traverse a text file
+#+BEGIN_SRC python :python python3 :results output
+  with open("collects.csv", "r") as f:
+      for line in f:
+          if (line[1:7]=="advent"):
+              print (line[1:8])
+#+END_SRC
+
+#+RESULTS:
+: advent1
+: advent2
+: advent3
+: advent4
+
+** Use the csv library
+#+BEGIN_SRC python :python python3 :results output
+  import csv
+  with open("collects.csv", "r") as f:
+      reader = csv.reader(f)
+      for row in reader:
+          if len(row[0])>0:
+              print(row[0])
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Code
+advent1
+advent2
+advent3
+advent4
+nativity1
+nativity2
+nativity3
+christmas1
+holyname
+christmas2
+epiphany
+epiphany1
+epiphany2
+epiphany3
+epiphany4
+presentation
+epiphany5
+epiphany6
+epiphany7
+epiphany8
+epiphanylast
+ashwednesday
+lent1
+lent2
+lent3
+lent4
+lent5
+annunciation
+palmsunday
+holymonday
+holytuesday
+holywednesday
+maundythursday
+goodfriday
+holysaturday
+vigil
+easter
+easterevening
+eastermonday
+eastertuesday
+easterwednesday
+easterthursday
+easterfriday
+eastersaturday
+easter2
+easter3
+easter4
+easter5
+easter6
+ascension
+ascension-grant
+easter7
+pentecost-ogod
+pentecost
+trinity
+visitation
+proper1
+proper2
+proper3
+proper4
+proper5
+proper6
+proper7
+proper8
+proper9
+proper10
+proper11
+proper12
+proper13
+proper14
+proper15
+proper16
+proper17
+proper18
+proper19
+holycross
+proper20
+proper21
+proper22
+proper23
+thanksgivingcanadian
+proper24
+proper25
+proper26
+allsaints
+proper27
+proper28
+proper29
+thanksgivingusa
+#+end_example

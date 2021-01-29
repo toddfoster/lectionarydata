@@ -1,0 +1,56 @@
+#+TITLE: LectionaryData
+* Background
+The [[http://www.episcopalchurch.org/sites/default/files/downloads/book_of_common_prayer.pdf][Book of Common Prayer]] was a gift to me at a trying time of life. It did not tell me what to do, but gave me the pieces I needed to pursue the habits of prayer I'd longed for. It's like having a mentor in prayer, available to me at whatever crazy hour I decide to pray.
+
+But the BCP is a bit daunting for its new users. Its completeness and flexibility leave lots of choices and lots of figuring out. Among the things to figure out is which pieces to use on which days. [fn::This is not about freedom: any piece can be used on any day. But there is a beauty and harmony to the cycle of the Church Year, a pattern that carries one through important ideas and encounters with one's faith. The Prayer Book, especially with its collects and readings, has all the pieces one needs to follow that pattern and benefit from it. As one grows used to it, it all makes sense and becomes easier to figure out. But for those just beginning this journey, it can be complicated to suss out all those details.]
+
+Some of the details -- looking at you, movable feasts -- can be a little hairy. Others -- days getting pushed around by how Easter or Christmas fall -- are also mildly challenging. The church year is a hybrid, parts keyed to the Gregorian calendar (namely, Christmas and most other feasts) and parts not (namely Easter and its related feasts -- Easter being the chief celebration of the entire year).
+
+I've long had a desire to make the BCP  more approachable for people. There are now several excellent resources out there to that end. Some of my favorites include:
+-  [[https://lectionarypage.net/][The Lectionary Page]] (clean and intuitive)
+-  [[https://dailyoffice.app/][The Daily Office App]] (super-complete; opinionated)
+-  [[http://justus.anglican.org/resources/bcp/][Satucket]] ([[http://www.satucket.com/lectionary/index.htm][lectionary]])
+-  [[http://www.episcopalchurch.org/sites/default/files/downloads/book_of_common_prayer.pdf][The BCP as a pdf from The Episcopal Church]]
+-  [[http://lectionary.library.vanderbilt.edu/][RCL resources from the Vanderbilt Library]] (great spreadsheets, pdf's, etc.)
+
+* Goals
+So what more do I want? I want something super-simple for people to use. I'm about 2/3 of the way their with [[https://www.sharedprayers.net/][Shared Prayers]] ([[https://github.com/toddfoster/sharedprayers][src]]). But that's all hand-generated at present. I want to automate as much of Shared Prayers as possible, making it easy to provide a particular liturgy and eventually generating them with scripts.
+
+Data stored in simple spreadsheets, csv, can be extracted by relatively simple scripts and transcoded into useful structures -- e.g., a simple file hierarchy for use by hugo, the software underlying Shared Prayers.
+
+* Tasks
+/Some of these tasks are oriented more toward [[https://github.com/toddfoster/sharedprayers][Shared Prayers]] than just Lectionary Parsing./
+** TODO Begin by Provide collects for the church year
+*** TODO Week encoding
+[ ] Choose a standard encoding by which to name each week of the church year uniquely.
+[ ] Include major feasts
+*** TODO Line up the collects for each week of the church year
+In a spreadsheet seems simplest
+Leave out the " Amen." at the end. A script could easily add these back in. But I will note that formatting the *Amen* differently (as a congregational response) in hugo is simpler if I just leave it out of the plain, undecorated text of the collect.
+*** TODO Write code to extract those collects in an automated way
+Onto the file system: e.g., ~collects/epiphany1.txt~
+[ ] Take another run at brushing up on Python; [[https://www.stavros.io/tutorials/python/][start here]] and get some cheat sheets
+** TODO Algorithm to choose the corresponding week code for an arbitrary date
+Depends on Easter & Christmas.
+Movable feasts are a secondary / separate consideration: some settings will be able to follow the daily lectionary even on feast days.
+** TODO Line up daily lectionary against week codes
+Vanderbilt spreadsheet is a great starting point.
+Compare it against BCP.
+[ ] How to account for optional readings?
+[ ] Separate columns for Psalm, First, Second, Third readings
+[ ] Code to extract references onto file system: ~rcl/epiphany1/firstlesson/reference.txt~
+** TODO Get texts for lectionary
+Code to scrape references into actual texts: ~rcl/epiphany1/firstlesson/lesson.txt~
+** TODO DailyLectionaryPage website?
+Code to generate calendars like on LectionaryPage.net
+** TODO Easy: suggested canticles according to BCP 144f.
+~canticle/suggested/mp/monday.txt~
+** TODO Algorithm to report feast days
+Movable feasts will make this complex.
+** TODO Figure out which parts of Shared Prayers need to be customized
+To make SharedPrayers more friendly for different groups, find the parts that could be easily customized. The Prayers of the People are the biggest thing, I think. Hymns also raise this question.
+** MAYBE Format Shared Prayers to replace bulletins
+First step: a sticker with the shared prayers QR code on the mini-bulletin.
+Second step: a sticker with the shared prayers QR code & explanation in the front cover of the prayer books in the pews.
+
+I would love to replace producing full-text bulletins with using shared-prayers. I wonder if I could figure out how to format them for printing. At a minimum, I could have  standard one-page bulletin that helps guide people through the prayer book with a minimum of adjustments and announcements for the week.
