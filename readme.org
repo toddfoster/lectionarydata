@@ -22,14 +22,16 @@ Data stored in simple spreadsheets, csv, can be extracted by relatively simple s
 /Some of these tasks are oriented more toward [[https://github.com/toddfoster/sharedprayers][Shared Prayers]] than just Lectionary Parsing./
 ** TODO Begin by Provide collects for the church year
 *** TODO Week encoding
-[ ] Choose a standard encoding by which to name each week of the church year uniquely.
-[ ] Include major feasts
-*** TODO Line up the collects for each week of the church year
+[x] Choose a standard encoding by which to name each week of the church year uniquely.
+*** TODO Include propers for major feasts (really, all propers in BCP)
+*** DONE Line up the collects for each week of the church year
+CLOSED: [2021-01-29 Fri 17:51]
 In a spreadsheet seems simplest
 Leave out the " Amen." at the end. A script could easily add these back in. But I will note that formatting the *Amen* differently (as a congregational response) in hugo is simpler if I just leave it out of the plain, undecorated text of the collect.
-*** TODO Write code to extract those collects in an automated way
+*** DONE Write code to extract those collects in an automated way
+CLOSED: [2021-01-29 Fri 17:51]
 Onto the file system: e.g., ~collects/epiphany1.txt~
-[ ] Take another run at brushing up on Python; [[https://www.stavros.io/tutorials/python/][start here]] and get some cheat sheets
+[x] Take another run at brushing up on Python; [[https://www.stavros.io/tutorials/python/][start here]] and get some cheat sheets
 ** TODO Algorithm to choose the corresponding week code for an arbitrary date
 Depends on Easter & Christmas.
 Movable feasts are a secondary / separate consideration: some settings will be able to follow the daily lectionary even on feast days.
