@@ -20,10 +20,13 @@ Data stored in simple spreadsheets, csv, can be extracted by relatively simple s
 
 * Tasks
 /Some of these tasks are oriented more toward [[https://github.com/toddfoster/sharedprayers][Shared Prayers]] than just Lectionary Parsing./
-** TODO Begin by Provide collects for the church year
-*** TODO Week encoding
+** TODO Begin by providing collects for the church year
+*** DONE Week encoding
+CLOSED: [2021-01-29 Fri 22:36]
 [x] Choose a standard encoding by which to name each week of the church year uniquely.
-*** TODO Include propers for major feasts (really, all propers in BCP)
+*** DONE Include propers for major feasts (really, all propers in BCP)
+CLOSED: [2021-01-29 Fri 22:37]
+I've included all the ones I might regularly use. When celebrating particular saints, I usually use their specific collect from /Lesser Feast and Fasts/ or /Holy Women, Holy Men/. I'm not ready to enter all of those yet.
 *** DONE Line up the collects for each week of the church year
 CLOSED: [2021-01-29 Fri 17:51]
 In a spreadsheet seems simplest
@@ -45,6 +48,7 @@ Compare it against BCP.
 Code to scrape references into actual texts: ~rcl/epiphany1/firstlesson/lesson.txt~
 ** TODO DailyLectionaryPage website?
 Code to generate calendars like on LectionaryPage.net
+** TODO Provide Eucharistic Lessons - references & texts
 ** TODO Easy: suggested canticles according to BCP 144f.
 ~canticle/suggested/mp/monday.txt~
 ** TODO Algorithm to report feast days
