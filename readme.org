@@ -21,6 +21,8 @@ Data stored in simple spreadsheets, csv, can be extracted by relatively simple s
 * Tasks
 /Some of these tasks are oriented more toward [[https://github.com/toddfoster/sharedprayers][Shared Prayers]] than just Lectionary Parsing./
 ** DONE Begin by providing  collects for the church year
+** DONE Provide titles of days
+** DONE Provide prefaces (I'm tempted not to include them since they might be distracting when I get them wrong in liturgy!)
 CLOSED: [2021-01-30 Sat 10:40]
 *** DONE Week encoding
 CLOSED: [2021-01-29 Fri 22:36]
@@ -48,7 +50,8 @@ Code to scrape references into actual texts: ~rcl/epiphany1/firstlesson/lesson.t
 Or spreadsheet with scraped texts from lectionarypage? -- Might smooth beginnings.
 ** TODO Algorithm to choose the corresponding week code for an arbitrary date
 Depends on Easter & Christmas.
-Movable feasts are a secondary / separate consideration: some settings will be able to follow the daily lectionary even on feast days.
+Added a column to calculate the dates for a specific year -- except movable feasts. This means I could generate the Principle Feasts, Sundays, and the three Holy Days that take precedence of a Sunday, all from the spreadsheet input. Or that algorithm could be extracted out into a script.
+The benefit of doing this in the spreadsheet is one can look through the spreadsheet and verify (or even tweak) the dates before generating the pages. E.g., to move the movables by hand.
 ** TODO Line up daily lectionary against week codes
 Vanderbilt spreadsheet is a great starting point.
 Compare it against BCP.
@@ -57,7 +60,6 @@ Compare it against BCP.
 [ ] Code to extract references onto file system: ~rcl/epiphany1/firstlesson/reference.txt~
 ** TODO DailyLectionaryPage website?
 Code to generate calendars like on LectionaryPage.net
-** TODO Provide Eucharistic Lessons - references & texts
 ** TODO Easy: suggested canticles according to BCP 144f.
 ~canticle/suggested/mp/monday.txt~
 ** TODO Algorithm to report feast days

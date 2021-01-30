@@ -193,3 +193,37 @@ thanksgivingusa
 
 #+RESULTS:
 : Wrote 118 records
+
+** Dump multiple columns into directory =proper=
+Each column gets its own sub-directory. Each entry is named with the week-code. e.g., =proper/collect/epiphany3=
+
+#+BEGIN_SRC python :python python3 :results output
+  import csv, os
+  targetdir = "proper/"
+  codeColumn = 1
+  fields = {
+      "collect": 2,
+      "preface": 3,
+      "title": 4
+  }
+
+  for dir in fields.keys():
+    os.makedirs(targetdir + dir, exist_ok=True)
+
+  count=0
+  with open("bcplectionary.csv", "r") as f:
+      reader = csv.reader(f)
+      next(reader) # skip header line
+      for row in reader:
+          if row[0] == "999": continue # Skip unused rows
+          code = row[1]
+          if len(code)<3: continue   # Skip uncoded or badly coded rows
+          count+=1
+          for dir, column in fields.items():
+              with open (targetdir + dir + "/" + code, "w") as t:
+                  t.write(row[column])
+  print ("Wrote " + str(count) + " records for each of " + str(len(fields)) + " fields.")
+#+END_SRC
+
+#+RESULTS:
+: Wrote 115 records for each of 3 fields.
