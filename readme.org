@@ -20,7 +20,8 @@ Data stored in simple spreadsheets, csv, can be extracted by relatively simple s
 
 * Tasks
 /Some of these tasks are oriented more toward [[https://github.com/toddfoster/sharedprayers][Shared Prayers]] than just Lectionary Parsing./
-** TODO Begin by providing collects for the church year
+** DONE Begin by providing  collects for the church year
+CLOSED: [2021-01-30 Sat 10:40]
 *** DONE Week encoding
 CLOSED: [2021-01-29 Fri 22:36]
 [x] Choose a standard encoding by which to name each week of the church year uniquely.
@@ -35,6 +36,16 @@ Leave out the " Amen." at the end. A script could easily add these back in. But 
 CLOSED: [2021-01-29 Fri 17:51]
 Onto the file system: e.g., ~collects/epiphany1.txt~
 [x] Take another run at brushing up on Python; [[https://www.stavros.io/tutorials/python/][start here]] and get some cheat sheets
+** TODO Line up Eucharistic lectionary against week codes
+*** TODO How to handle optional readings?
+*** TODO Year B
+*** TODO Year C
+*** TODO Year A
+** TODO Provide introductions to texts
+Another spreadsheet, another hierarchy -- parse out Bible book or just key straight back to the church year code?
+** TODO Get texts for lectionary
+Code to scrape references into actual texts: ~rcl/epiphany1/firstlesson/lesson.txt~
+Or spreadsheet with scraped texts from lectionarypage? -- Might smooth beginnings.
 ** TODO Algorithm to choose the corresponding week code for an arbitrary date
 Depends on Easter & Christmas.
 Movable feasts are a secondary / separate consideration: some settings will be able to follow the daily lectionary even on feast days.
@@ -44,8 +55,6 @@ Compare it against BCP.
 [ ] How to account for optional readings?
 [ ] Separate columns for Psalm, First, Second, Third readings
 [ ] Code to extract references onto file system: ~rcl/epiphany1/firstlesson/reference.txt~
-** TODO Get texts for lectionary
-Code to scrape references into actual texts: ~rcl/epiphany1/firstlesson/lesson.txt~
 ** TODO DailyLectionaryPage website?
 Code to generate calendars like on LectionaryPage.net
 ** TODO Provide Eucharistic Lessons - references & texts
@@ -53,10 +62,3 @@ Code to generate calendars like on LectionaryPage.net
 ~canticle/suggested/mp/monday.txt~
 ** TODO Algorithm to report feast days
 Movable feasts will make this complex.
-** TODO Figure out which parts of Shared Prayers need to be customized
-To make SharedPrayers more friendly for different groups, find the parts that could be easily customized. The Prayers of the People are the biggest thing, I think. Hymns also raise this question.
-** MAYBE Format Shared Prayers to replace bulletins
-First step: a sticker with the shared prayers QR code on the mini-bulletin.
-Second step: a sticker with the shared prayers QR code & explanation in the front cover of the prayer books in the pews.
-
-I would love to replace producing full-text bulletins with using shared-prayers. I wonder if I could figure out how to format them for printing. At a minimum, I could have  standard one-page bulletin that helps guide people through the prayer book with a minimum of adjustments and announcements for the week.
