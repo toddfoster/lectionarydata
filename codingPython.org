@@ -173,6 +173,90 @@ proper29
 thanksgivingusa
 #+end_example
 
+** Books of the Bible
+Genesis
+Exodus
+Leviticus
+Numbers
+Deuteronomy
+Joshua
+Judges
+Ruth
+1 Samuel
+2 Samuel
+1 Kings
+2 Kings
+1 Chronicles
+2 Chronicles
+Ezra
+Esther
+Job
+Psalms
+Proverbs
+Ecclesiastes
+Song of Solomon
+Isaiah
+Jeremiah
+Lamentations
+Ezekiel
+Daniel
+Hosea
+Joel
+Amos
+Obadiah
+Jonah
+Micah
+Nahum
+Habakkuk
+Zephaniah
+Haggai
+Zechariah
+Malachi
+Tobit
+Judith
+Additions to Esther
+Wisdom of Solomon
+Sirach (Ecclesiasticus)
+Baruch
+1 Esdras
+2 Esdras
+Letter of Jeremiah
+Prayer of Azariah and the Song of the Three Jews
+Susanna
+Bel and the Dragon
+1 Maccabees
+2 Maccabees
+3 Maccabees
+4 Maccabees
+Prayer of Manasseh
+Matthew
+Mark
+Luke
+John
+Acts of the Apostles
+Romans
+1 Corinthians
+2 Corinthians
+Galatians
+Ephesians
+Philippians
+Colossians
+1 Thessalonians
+2 Thessalonians
+1 Timothy
+2 Timothy
+Titus
+Philemon
+Hebrews
+James
+1 Peter
+2 Peter
+1 John
+2 John
+3 John
+Jude
+Revelation
+
 * Output to files
 ** Dump collects into directory =collects=
 #+BEGIN_SRC python :python python3 :results output
@@ -227,3 +311,34 @@ Each column gets its own sub-directory. Each entry is named with the week-code. 
 
 #+RESULTS:
 : Wrote 115 records for each of 3 fields.
+** Produce books of Bible lookup in =readings/intro=
+Issue:
+  - Philippians and Philemon require five characters to distinguish
+  - Job 1 and Job 2 should use the same entry
+ This sounds like a job for a regular expression!
+ I like =^..[a-z]{1,3}= but the online testers don't catch the leading numerals. Maybe the fault of the javascript implementation?
+Each file is named with the first five non-space characters, in lower case.
+
+#+BEGIN_SRC python :python python3 :results output
+  import csv, os
+  targetdir = "readings/intro/"
+  codeColumn = 1
+  introColumn = 2
+
+  os.makedirs(targetdir, exist_ok=True)
+
+  count=0
+  with open("booksofbible.csv", "r") as f:
+      reader = csv.reader(f)
+      next(reader) # skip header line
+      for row in reader:
+          if row[0] == "": continue # Skip unused rows
+          code = row[1].lower().replace(" ","")[0:5]
+          count+=1
+          with open (targetdir + "/" + code, "w") as t:
+              t.write(row[introColumn])
+  print ("Wrote " + str(count) + " records.")
+#+END_SRC
+
+#+RESULTS:
+: Wrote 82 records.
