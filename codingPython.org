@@ -342,3 +342,180 @@ Each file is named with the first five non-space characters, in lower case.
 
 #+RESULTS:
 : Wrote 82 records.
+
+** Produce Psalms in =readings/pss/plaintext=
+Format:
+  - Blank line between Psalms/parts
+  - # Psalm number (filename)
+  - ## Part of Psalm or letter for Ps 119 (bold)
+  - ### Latin title (italic)
+  - Add "Part" to filename for those that contain the keyword
+  - Psalm119: add a \n for each new letter heading
+
+#+BEGIN_SRC python :python python3 :results output
+  import os
+  targetdir = "readings/pss/plaintext/"
+  os.makedirs(targetdir, exist_ok=True)
+
+  countLines = 0
+  countPsalms = 0
+  previousLine = ""
+  with open("psalter.txt", "r") as f:
+      line = f.readline().rstrip()
+      while line:
+          if (line[0:2] != "# "):
+              print ("Unexpected input: " + line)
+              break;
+          # New Psalm
+          countPsalms += 1
+          countLines += 2
+          title = line[2:]
+          # Check for Part I/Part II
+          line = f.readline().rstrip()
+          countLines += 1
+          if (title != "119" and line[0:3] == "## "):
+              title = title + line[3:].replace (" ", "")
+          # Open new file for writing
+          with open (targetdir + "/" + title, "w") as t:
+              while (len(line)>0):
+                  if (line[0:3] == "## "):
+                      if (title == "119" and line != "## Aleph"):
+                          t.write("\n")
+                      t.write(line[3:] + "\n")
+                  elif (line[0:4] == "### "):
+                      t.write(line[4:] + "\n")
+                  else:
+                      t.write(line + "\n")
+                  line = f.readline().rstrip()
+                  countLines += 1
+          line = f.readline().rstrip()
+  print ("Wrote " + str(countLines) + " lines in " + str(countPsalms) + " files.")
+#+END_SRC
+
+#+RESULTS:
+: Wrote 6328 lines in 157files.
+
+** Produce Psalms in =readings/pss/plain=
+Format:
+  - Blank line between Psalms/parts
+  - # Psalm number (filename)
+  - ## Part of Psalm or letter for Ps 119 (bold)
+  - ### Latin title (italic)
+  - Add "Part" to filename for those that contain the keyword
+  - Psalm119: add a \n for each new letter heading
+
+#+BEGIN_SRC python :python python3 :results output
+  import os
+  targetdir = "readings/pss/plain/"
+  os.makedirs(targetdir, exist_ok=True)
+
+  countLines = 0
+  countPsalms = 0
+  previousLine = ""
+  with open("psalter.txt", "r") as f:
+      line = f.readline().rstrip()
+      while line:
+          if (line[0:2] != "# "):
+              print ("Unexpected input: " + line)
+              break;
+          # New Psalm
+          countPsalms += 1
+          countLines += 2
+          title = line[2:]
+          # Check for Part I/Part II
+          line = f.readline().rstrip()
+          countLines += 1
+          if (title != "119" and line[0:3] == "## "):
+              title = title + line[3:].replace (" ", "")
+          # Open new file for writing
+          with open (targetdir + "/" + title, "w") as t:
+              while (len(line)>0):
+                  if (line[0:3] == "## "):
+                      if (title == "119" and line != "## Aleph"):
+                          t.write("\n")
+                      t.write("**" + line[3:] + "**" + "\n")
+                  elif (line[0:4] == "### "):
+                      t.write("_" + line[4:] + "_" + "\n")
+                  else:
+                      t.write(line + "\n")
+                  line = f.readline().rstrip()
+                  countLines += 1
+          line = f.readline().rstrip()
+  print ("Wrote " + str(countLines) + " lines in " + str(countPsalms) + " files.")
+#+END_SRC
+
+#+RESULTS:
+: Wrote 6328 lines in 157files.
+** Produce Psalms in =readings/pss/responsively=
+Format:
+  - Blank line between Psalms/parts
+  - # Psalm number (filename)
+  - ## Part of Psalm or letter for Ps 119 (bold)
+  - ### Latin title (italic)
+  - Add "Part" to filename for those that contain the keyword
+  - Psalm119: add a \n for each new letter heading
+
+#+BEGIN_SRC python :python python3 :results output
+  import os
+  targetdir = "readings/pss/responsively/"
+  os.makedirs(targetdir, exist_ok=True)
+
+  countLines = 1
+  countPsalms = 0
+  with open("psalter.txt", "r") as f:
+      line = f.readline().rstrip()
+      while line:
+          if (line[0:2] != "# "):
+              print ("Unexpected input: " + line)
+              break;
+          countPsalms += 1
+          title = line[2:]
+
+          # Check for Part I/Part II
+          line = f.readline().rstrip()
+          countLines += 1
+          if (title != "119" and line[0:3] == "## "):
+              title = title + line[3:].replace (" ", "")
+
+          # Open new file for writing
+          with open (targetdir + "/" + title, "w") as t:
+              newPsalm = True
+              responseOpen = False
+              while (len(line)>0):
+                  if not newPsalm:
+                      t.write ("\n")
+                  if (line[0:3] == "## "): # Part or Letter
+                      if (title == "119"):
+                          if (newPsalm):
+                            t.write("_" + line[3:] + "_\n")
+                          else:
+                              t.write ("\n_" + line[3:] + "_")
+                      else:
+                          t.write("_" + line[3:] + "_\n")
+                      line = f.readline().rstrip()
+                  elif (line[0:4] == "### "): # latin title
+                      if (title == "119"):
+                          t.write("_" + line[4:] + "_\n")
+                      else:
+                          t.write("_" + line[4:] + "_\n\n")
+                      line = f.readline().rstrip()
+                  else:
+                      if (line[0].isdigit()):
+                          responseOpen = not newPsalm and not responseOpen
+                          newPsalm = False
+                          if responseOpen:
+                              t.write ("> **" + line)
+                          else:
+                              t.write ("> " + line)
+                      else:
+                          t.write (line)
+                      line = f.readline().rstrip()
+                      countLines += 1
+                      if (responseOpen and (len(line) == 0 or line[0].isdigit())):
+                          t.write("**\n") # two \n's on purpose
+              line = f.readline().rstrip() # Drew a blank: try for another line
+  print ("Wrote " + str(countLines) + " lines in " + str(countPsalms) + " files.")
+#+END_SRC
+
+#+RESULTS:
+: Wrote 5801 lines in 157 files.
