@@ -43,8 +43,14 @@ Onto the file system: e.g., ~collects/epiphany1.txt~
 *** TODO Year B
 *** TODO Year C
 *** TODO Year A
-** TODO Provide introductions to texts
+** DONE Provide introductions to texts
+CLOSED: [2021-02-01 Mon 23:18]
 Another spreadsheet, another hierarchy -- parse out Bible book or just key straight back to the church year code?
+** DONE Parse out Psalms in useful ways that are easy to access
+  - plaintex
+  - markdown
+  - markdown for responsive reading
+CLOSED: [2021-02-01 Mon 23:18]
 ** TODO Get texts for lectionary
 Code to scrape references into actual texts: ~rcl/epiphany1/firstlesson/lesson.txt~
 Or spreadsheet with scraped texts from lectionarypage? -- Might smooth beginnings.
