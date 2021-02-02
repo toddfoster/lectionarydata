@@ -519,3 +519,114 @@ Format:
 
 #+RESULTS:
 : Wrote 5801 lines in 157 files.
+** Better Psalm parser
+Load each Psalm into memory at once, then format & output as needed
+Format of input file:
+  - Blank line between Psalms
+  - # Psalm number (filename)
+  - ## Part of Psalm or letter for Ps 119 (bold)
+  - ### Latin title (italic)
+  - When Parts/titles occur mid-Psalm, give an extra \n above it
+
+#+BEGIN_SRC python :python python3 :results output
+  import os
+  targetdir_plaintext = "readings/pss/plaintext/"
+  targetdir_markdown  = "readings/pss/markdown/"
+  targetdir_responsively = "readings/pss/responsively/"
+  os.makedirs(targetdir_plaintext, exist_ok=True)
+  os.makedirs(targetdir_markdown, exist_ok=True)
+  os.makedirs(targetdir_responsively, exist_ok=True)
+
+  countPsalms = 0
+  countLines = 0
+  countFiles = 0
+  with open("psalter.txt", "r") as f:
+      line = f.readline().rstrip()
+      countLines += 1
+      while len(line) > 1:
+          if (line[0:2] != "# "):
+              print ("Unexpected input: " + line)
+              break;
+          countPsalms += 1
+          title = line[2:]
+
+          # Read in entire Psalm
+          psalm = []
+          line = f.readline()
+          countLines += 1
+          while len(line) > 1:
+              psalm.append(line.rstrip())
+              line = f.readline()
+              countLines += 1
+
+          # Output plaintext Psalm
+          atTheBeginning = 2
+          with open (targetdir_plaintext + "/" + title, "w") as t:
+              countFiles += 1
+              for l in psalm:
+                  if (l[0:3] == "## "):
+                      if (atTheBeginning <= 0 and l[0] == "#"):
+                          t.write("\n")
+                      t.write(l[3:] + "\n")
+                  elif (l[0:4] == "### "):
+                      t.write(l[4:] + "\n")
+                  else:
+                      t.write(l + "\n")
+                  atTheBeginning -= 1
+
+          # Output markdown Psalm
+          atTheBeginning = 2
+          with open (targetdir_markdown + "/" + title, "w") as t:
+              countFiles += 1
+              for l in psalm:
+                  if (l[0:3] == "## "):
+                      if (atTheBeginning <= 0 and l[0] == "#"):
+                          t.write("\n")
+                      t.write("**" + l[3:] + "**\n")
+                  elif (l[0:4] == "### "):
+                      t.write("_" + l[4:] + "_\n\n")
+                  else:
+                      t.write("> " + l + "\n")
+                  atTheBeginning -= 1
+
+          # Output responsive Psalm
+          foundAVerse = False
+          isEven = False
+          with open (targetdir_responsively + "/" + title, "w") as t:
+              countFiles += 1
+              for l in psalm:
+                  if (foundAVerse):
+                      # If not the beginnig of the Psalm, finish off the last line
+                      if (isEven and (l[0].isdigit() or l[0] == "#")):
+                          t.write("**\n") # extra line between pairs
+                      t.write("\n")
+
+                  # Process the line
+                  if (l[0:3] == "## "):
+                      t.write("**" + l[3:] + "**\n")
+                      isEven = False
+                      foundAVerse = False
+                  elif (l[0:4] == "### "):
+                      t.write("_" + l[4:] + "_\n\n")
+                      isEven = False
+                      foundAVerse = False
+                  else:
+                      if (l[0].isdigit()):
+                          t.write("> ")
+                          if (foundAVerse):
+                              isEven = not isEven
+                          if (isEven):
+                              t.write("**")
+                          foundAVerse = True
+                      t.write(l)
+              # If not the beginnig of the Psalm, finish off the last line
+              if (isEven):
+                  t.write("**")
+              t.write("\n")
+          line = f.readline().rstrip()
+          countLines += 1
+  print ("Wrote " + str(countLines) + " lines in " + str(countFiles) + " files for " + str(countPsalms) + " Psalms.")
+#+END_SRC
+
+#+RESULTS:
+: Wrote 6060 lines in 450 files for 150 Psalms.

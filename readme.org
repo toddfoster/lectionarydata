@@ -51,6 +51,12 @@ Another spreadsheet, another hierarchy -- parse out Bible book or just key strai
   - markdown
   - markdown for responsive reading
 CLOSED: [2021-02-01 Mon 23:18]
+** TODO Improve Psalms parser
+- read a Psalm into an array
+- write it multiple times, re-formatting as desired
+** TODO Extract Eucharistic Psalm portions
+- 4 columns: year, week, portion, portion with each verse listed individually
+- pull out desired verses into a file for each year-week
 ** TODO Get texts for lectionary
 Code to scrape references into actual texts: ~rcl/epiphany1/firstlesson/lesson.txt~
 Or spreadsheet with scraped texts from lectionarypage? -- Might smooth beginnings.
