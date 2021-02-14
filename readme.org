@@ -1,4 +1,53 @@
 #+TITLE: LectionaryData
+* Files
+** =bcplectionary.ods=
+This is the source file for several tables, including:
+- collects
+- BooksOfBible
+
+Each table is in a separate sheet, which should be exported to a csv file for easy use by Python.
+
+The "Collects" table has an "authoritative" column of codings for each week of the liturgical year ("week-code"), and a number of holidays as well. This name is the key that can be used to refer to output from this file. (See below re: =src/collects.csv=.)
+
+*Output:*
+- =src/booksofbible.csv=
+- =src/collects.csv= More than just collects! Also contains which preface to use and the proper Title of the day.
+
+** =raw/psalter-raw.txt=
+The Psalter in plaintext, mostly as received from Satucket. Used to generate =src/psalter.txt=.
+** =raw/bcp2007.txt=
+The results of running =pdftotext= on the pdf of the BCP available from the Episcopal Church website. Used chiefly to extract lectionaries in a reliable way.
+** =src/collects.csv=
+Generates three folders (so far!) under =proper=.
+1. =collect= contains a file for each week-code, with plain text for that day's proper collect (Rite II) according to BCP 211ff.
+2. =preface= contains a file for each week-code, with a plain text name of that day's proper preface according to BCP 211ff. Not the preface itself: just the name of it (a similar code: all lower-case, no spaces).
+3. =title= contains a file for each week-code with the proper title for that day on the liturgical calendar according to BCP 31ff.
+** =src/psalter.txt=
+This is the Psalter in plaintext, received from Satucket, reformatted, an error or two corrected. These will correspond to the Coverdale translation as adapted into the /Book of Common Prayer/ 2007 for the Episcopal Church.
+
+In this file:
+- =#= Designates the Psalm number
+- =##= Indicates a Part number or the letter in Psalm 90
+- =###= Indicates the Latin title of the Psalm
+
+This file should be formatted without any surprises. Every Psalm begins with the Psalm number, and that is followed by one or more secondary headings. Additional secondary headings may appear within the Psalm. Psalms are separated by a blank line.
+
+These are processed with a script in =codingPython.org=
+
+*Outputs:*
+- =readings/pss/plaintext/1-150= : the Psalms in plaintext, one per file
+- =readings/pss/markdown/1-150= : the Psalms in Markdown, one per file
+- =readings/pss/responsively/1-150= : the Psalms in Markdown, responsively by verse, one per file
+** =src/booksofbible.csv=
+This is a list of all the books of the Bible, corresponding to the NRSV, including Apocrypha. The name of each book is in the second column. The third column provides an appropriate introduction for each book. Introductions are written as if there was a "A reading from..." before them. They end with a period. Deutero-canonical books are not called out as such. Paul's epistles get a little more flowery. I chose not to include the place name "Thessalonika" due to lectors often having trouble enough just with the names of those two epistles, which I use instead.
+
+These are processed with a script in =codingPython.org=. A code is generated from each book from its actual name by removing spaces and making all the letters lower-case. Five letters are required for unique names (to distinguish Phillipans vs. Philemon). Shorter names are not padded out. This encoding is simple to replicate in [[https://gohugo.io][Hugo]] (a go-based website generator) from any actual scripture reference.
+
+*Outputs:*
+- =readings/intro/genes=
+- =readings/intro/exodu=
+- etc.
+
 * Background
 The [[http://www.episcopalchurch.org/sites/default/files/downloads/book_of_common_prayer.pdf][Book of Common Prayer]] was a gift to me at a trying time of life. It did not tell me what to do, but gave me the pieces I needed to pursue the habits of prayer I'd longed for. It's like having a mentor in prayer, available to me at whatever crazy hour I decide to pray.
 
@@ -14,7 +63,7 @@ I've long had a desire to make the BCP  more approachable for people. There are 
 -  [[http://lectionary.library.vanderbilt.edu/][RCL resources from the Vanderbilt Library]] (great spreadsheets, pdf's, etc.)
 
 * Goals
-So what more do I want? I want something super-simple for people to use. I'm about 2/3 of the way their with [[https://www.sharedprayers.net/][Shared Prayers]] ([[https://github.com/toddfoster/sharedprayers][src]]). But that's all hand-generated at present. I want to automate as much of Shared Prayers as possible, making it easy to provide a particular liturgy and eventually generating them with scripts.
+So what more do I want? I want something super-simple for people to use. I'm about 2/3 of the way there with [[https://www.sharedprayers.net/][Shared Prayers]] ([[https://github.com/toddfoster/sharedprayers][src]]). But that's all hand-generated at present. I want to automate as much of Shared Prayers as possible, making it easy to provide a particular liturgy and eventually generating them with scripts.
 
 Data stored in simple spreadsheets, csv, can be extracted by relatively simple scripts and transcoded into useful structures -- e.g., a simple file hierarchy for use by hugo, the software underlying Shared Prayers.
 
