@@ -586,7 +586,8 @@ Format of input file:
                   elif (l[0:4] == "### "):
                       t.write("_" + l[4:] + "_\n\n")
                   else:
-                      t.write("> " + l + "\n")
+                      l = l.replace(" *", " \\*")
+                      t.write("> " + l + "  \n")
                   atTheBeginning -= 1
 
           # Output responsive Psalm
@@ -598,8 +599,8 @@ Format of input file:
                   if (foundAVerse):
                       # If not the beginnig of the Psalm, finish off the last line
                       if (isEven and (l[0].isdigit() or l[0] == "#")):
-                          t.write("**\n") # extra line between pairs
-                      t.write("\n")
+                          t.write("**  \n") # extra line between pairs
+                      t.write("  \n")
 
                   # Process the line
                   if (l[0:3] == "## "):
@@ -618,11 +619,12 @@ Format of input file:
                           if (isEven):
                               t.write("**")
                           foundAVerse = True
+                      l = l.replace(" *", " \\*")
                       t.write(l)
               # If not the beginnig of the Psalm, finish off the last line
               if (isEven):
                   t.write("**")
-              t.write("\n")
+              t.write("  \n")
           line = f.readline().rstrip()
           countLines += 1
   print ("Wrote " + str(countLines) + " lines in " + str(countFiles) + " files for " + str(countPsalms) + " Psalms.")
