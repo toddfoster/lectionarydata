@@ -12,7 +12,6 @@ The "Collects" table has an "authoritative" column of codings for each week of t
 *Output:*
 - =src/booksofbible.csv=
 - =src/collects.csv= More than just collects! Also contains which preface to use and the proper Title of the day.
-
 ** =raw/psalter-raw.txt=
 The Psalter in plaintext, mostly as received from Satucket. Used to generate =src/psalter.txt=.
 ** =raw/bcp2007.txt=
@@ -47,7 +46,16 @@ These are processed with a script in =codingPython.org=. A code is generated fro
 - =readings/intro/genes=
 - =readings/intro/exodu=
 - etc.
-
+** =src/bcprcl-yearb.txt=
+Year B Eucharistic lectionary, extracted from BCP2007. Records are delimited by blank lines.
+|------------------------------------|
+| week-code                          |
+| Psalm [Track I]                    |
+| First Reading                      |
+| Second Reading                     |
+| Gospel Reading                     |
+| Optional: Psalm [Track II]         |
+| Optional: First Reading [Track II] |
 * Background
 The [[http://www.episcopalchurch.org/sites/default/files/downloads/book_of_common_prayer.pdf][Book of Common Prayer]] was a gift to me at a trying time of life. It did not tell me what to do, but gave me the pieces I needed to pursue the habits of prayer I'd longed for. It's like having a mentor in prayer, available to me at whatever crazy hour I decide to pray.
 
