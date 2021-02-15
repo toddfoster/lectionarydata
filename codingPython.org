@@ -310,7 +310,6 @@ Format:
 
 #+RESULTS:
 : Wrote 6328 lines in 157files.
-
 *** Produce Psalms in =readings/pss/plain=
 Format:
   - Blank line between Psalms/parts
@@ -633,3 +632,140 @@ Format of input file:
 
 #+RESULTS:
 : Wrote 6060 lines in 450 files for 150 Psalms.
+
+** Eucharistic Lectionary
+*** Parse =src/bcprcl-yearb.txt=
+Format:
+|-----------------------------|
+| week-code                   |
+| Psalm                       |
+| First Reading               |
+| Second Reading              |
+| Gospel                      |
+| Opt. Track II Psalm         |
+| Opt. Track II First Reading |
+| Blank Line                  |
+**** Test out file format
+#+BEGIN_SRC python :python python3 :results output
+  import os
+  srcfile = "src/bcprcl-yearb.txt"
+  countRecords = 0
+  with open(srcfile, "r") as f:
+      weekcode = f.readline().rstrip()
+      while weekcode:
+          # print ("Week found: " + weekcode)
+          countRecords += 1
+          f.readline().rstrip()
+          f.readline().rstrip()
+          f.readline().rstrip()
+          f.readline().rstrip()
+          nextLine = f.readline().rstrip()
+          if nextLine:
+              altReading = f.readline().rstrip()
+              # print ("Track II? "+ nextLine + " - " + altReading)
+              f.readline().rstrip()
+          weekcode = f.readline().rstrip()
+  print ("Found " + str(countRecords) + " records")
+#+END_SRC
+
+#+RESULTS:
+: Found 85 records
+**** Parse out file
+#+BEGIN_SRC python :python python3 :results output
+  import os
+  import shutil
+  srcfile = "src/bcprcl-yearb.txt"
+  track1 = "output/readings/yearb/track1/"
+  track2 = "output/readings/yearb/track2/"
+  opinionated = "output/readings/yearb/opinionated/"
+  countRecords = 0
+  shutil.rmtree(track1, ignore_errors=True)
+  shutil.rmtree(track2, ignore_errors=True)
+  shutil.rmtree(opinionated, ignore_errors=True)
+
+  with open(srcfile, "r") as f:
+      weekcode = f.readline().rstrip()
+      while weekcode:
+          countRecords += 1
+          psalm = f.readline().rstrip()
+          firstReading = f.readline().rstrip()
+          secondReading = f.readline().rstrip()
+          gospel = f.readline().rstrip()
+          nextLine = f.readline().rstrip()
+          if nextLine:
+              altPsalm = nextLine
+              altReading = f.readline().rstrip()
+              if f.readline().rstrip():
+                  raise Exception("Unexpected input near " + weekcode + ": " + nextLine)
+
+          # Output track 1 readings
+          dest = track1 + weekcode + "/"
+          os.makedirs(dest, exist_ok=False)
+          with open (dest + "psalm", "w") as t:
+              t.write(psalm)
+          with open (dest + "gospel", "w") as t:
+              t.write(gospel)
+          if firstReading:
+              with open (dest + "firstReading", "w") as t:
+                  t.write(firstReading)
+          if secondReading:
+              with open (dest + "secondReading", "w") as t:
+                  t.write(secondReading)
+          if nextLine:
+              with open (dest + "track2psalm", "w") as t:
+                  t.write(altPsalm)
+              with open (dest + "track2Reading", "w") as t:
+                  t.write(altReading)
+
+          # Output track 2 readings
+          dest = track2 + weekcode + "/"
+          os.makedirs(dest, exist_ok=False)
+          with open (dest + "gospel", "w") as t:
+              t.write(gospel)
+          if secondReading:
+              with open (dest + "secondReading", "w") as t:
+                  t.write(secondReading)
+          if nextLine:
+              with open (dest + "psalm", "w") as t:
+                  t.write(altPsalm)
+              with open (dest + "firstReading", "w") as t:
+                  t.write(altReading)
+          else:
+              with open (dest + "psalm", "w") as t:
+                  t.write(psalm)
+              if firstReading:
+                  with open (dest + "firstReading", "w") as t:
+                      t.write(firstReading)
+
+
+          # Output opinionated readings
+          ## 1: Follow Track 1
+          ## 2: if a canticle, choose second (Rite II)
+          ## 3: else choose the first option ("or")
+          ## 4: Easter, Pentecost: choose Heb reading, use Acts 2nd
+          dest = opinionated + weekcode + "/"
+          os.makedirs(dest, exist_ok=False)
+          # When there are choices to be made ("or"), choose the first
+          with open (dest + "psalm", "w") as t:
+              if psalm.find("Canticle") == 0:
+                  psalm = "Canticle " + psalm.partition(" or ")[2].lstrip()
+              t.write(psalm.partition(" or ")[0])
+          with open (dest + "gospel", "w") as t:
+              t.write(gospel.partition(" or ")[0])
+          if firstReading:
+              if weekcode.find("resurrection") * weekcode.find("pentecost1") * weekcode.find("pentecost2") == 0:
+                  firstReading = firstReading.partition(" or ")[2]
+                  secondReading = secondReading.partition(" or ")[2]
+              with open (dest + "firstReading", "w") as t:
+                  t.write(firstReading.partition(" or ")[0])
+          if secondReading:
+              with open (dest + "secondReading", "w") as t:
+                  t.write(secondReading.partition(" or ")[0])
+
+          # Start next line
+          weekcode = f.readline().rstrip()
+  print ("Parsed " + str(countRecords) + " records")
+#+END_SRC
+
+#+RESULTS:
+: Parsed 85 records

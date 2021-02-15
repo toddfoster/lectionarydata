@@ -1,0 +1,561 @@
+advent1
+80:1-7,16-18
+Isaiah 64:1-9
+1 Corinthians 1:3-9
+Mark 13:24-37
+
+advent2
+85:1-2,8-13
+Isaiah 40:1-11
+2 Peter 3:8-15a
+Mark 1:1-8
+
+advent3
+126 or Canticle 3 or 15
+Isaiah 61:1-4,8-11
+1 Thessalonians 5:16-24
+John 1:6-8,19-28
+
+advent4
+Canticle 3 or 15 or 89:1-4,19-26
+2 Samuel 7:1-11,16
+Romans 16:25-27
+Luke 1:26-38
+
+nativity1
+96
+Isaiah 9:2-7
+Titus 2:11-14
+Luke 2:1-14,(15-20)
+
+nativity2
+97
+Isaiah 62:6-12
+Titus 3:4-7
+Luke 2:(1-7),8-20
+
+nativity3
+98
+Isaiah 52:7-10
+Hebrews 1:1-4,(5-12)
+John 1:1-14
+
+christmas1
+147 or 147:13-21
+Isaiah 61:10—62:3
+Galatians 3:23-25; 4:4-7
+John 1:1-18
+
+holyname
+8
+Numbers 6:22-27
+Galatians 4:4-7 or Philippians 2:5-11
+Luke 2:15-21
+
+christmas2
+84 or 84:1-8
+Jeremiah 31:7-14
+Ephesians 1:3-6,15-19a
+Matthew 2:13-15,19-23 or Luke 2:41-52 or Matthew 2:1-12
+
+epiphany
+72:1-7,10-14
+Isaiah 60:1-6
+Ephesians 3:1-12
+Matthew 2:1-12
+
+epiphany1
+29
+Genesis 1:1-5
+Acts 19:1-7
+Mark 1:4-11
+
+epiphany2
+139:1-5,12-17
+1 Samuel 3:1-10,(11-20)
+1 Corinthians 6:12-20
+John 1:43-51
+
+epiphany3
+62:6-14
+Jonah 3:1-5,10
+1 Corinthians 7:29-31
+Mark 1:14-20
+
+epiphany4
+111
+Deuteronomy 18:15-20
+1 Corinthians 8:1-13
+Mark 1:21-28
+
+epiphany5
+147:1-12,21c
+Isaiah 40:21-31
+1 Corinthians 9:16-23
+Mark 1:29-39
+
+epiphany6
+30
+2 Kings 5:1-14
+1 Corinthians 9:24-27
+Mark 1:40-45
+
+epiphany7
+41
+Isaiah 43:18-25
+2 Corinthians 1:18-22
+Mark 2:1-12
+
+epiphany8
+103:1-13,22
+Hosea 2:14-20
+2 Corinthians 3:1-6
+Mark 2:13-22
+
+epiphanylast
+50:1-6
+2 Kings 2:1-12
+2 Corinthians 4:3-6
+Mark 9:2-9
+
+ashwednesday
+103 or 103:8-14
+Joel 2:1-2,12-17 or Isaiah 58:1-12
+2 Corinthians 5:20b—6:10
+Matthew 6:1-6,16-21
+
+lent1
+25:1-9
+Genesis 9:8-17
+1 Peter 3:18-22
+Mark 1:9-15
+
+lent2
+22:22-30
+Genesis 17:1-7,15-16
+Romans 4:13-25
+Mark 8:31-38
+
+lent3
+19
+Exodus 20:1-17
+1 Corinthians 1:18-25
+John 2:13-22
+
+lent4
+107:1-3,17-22
+Numbers 21:4-9
+Ephesians 2:1-10
+John 3:14-21
+
+lent5
+51:1-13 or 119:9-16
+Jeremiah 31:31-34
+Hebrews 5:5-10
+John 12:20-33
+
+liturgyofpalms
+118:1-2,19-29
+
+
+Mark 11:1-11 or John 12:12-16
+
+palmsunday
+31:9-16
+Isaiah 50:4-9a
+Philippians 2:5-11
+Mark 14:1—15:47 or Mark 15:1-39,(40-47)
+
+holymonday
+36:5-11
+Isaiah 42:1-9
+Hebrews 9:11-15
+John 12:1-11
+
+holytuesday
+71:1-14
+Isaiah 49:1-7
+1 Corinthians 1:18-31
+John 12:20-36
+
+holywednesday
+70
+Isaiah 50:4-9a
+Hebrews 12:1-3
+John 13:21-32
+
+maundythursday
+116:1,10-17
+Exodus 12:1-4,(5-10),11-14
+1 Corinthians 11:23-26
+John 13:1-17,31b-35
+
+goodfriday
+22
+Isaiah 52:13—53:12
+Hebrews 10:16-25 or Hebrews 4:14-16; 5:7-9
+John 18:1—19:42
+
+holysaturday
+31:1-4,15-16
+Job 14:1-14 or Lamentations 3:1-9,19-24
+1 Peter 4:1-8
+Matthew 27:57-66 or John 19:38-42
+
+resurrection1
+118:1-2,14-24
+Acts 10:34-43 or Isaiah 25:6-9
+1 Corinthians 15:1-11 or Acts 10:34-43
+John 20:1-18 or Mark 16:1-8
+
+resurrection2
+118:1-2,14-24
+Acts 10:34-43 or Isaiah 25:6-9
+1 Corinthians 15:1-11 or Acts 10:34-43
+John 20:1-18 or Mark 16:1-8
+
+resurrection3
+118:1-2,14-24
+Acts 10:34-43 or Isaiah 25:6-9
+1 Corinthians 15:1-11 or Acts 10:34-43
+John 20:1-18 or Mark 16:1-8
+
+eastereve
+114
+Isaiah 25:6-9
+1 Corinthians 5:6b-8
+Luke 24:13-49
+
+eastermonday
+16:8-11 or 118:19-24
+Acts 2:14,22b-32
+
+Matthew 28:9-15
+
+eastertuesday
+33:18-22 or 118:19-24
+Acts 2:36-41
+
+John 20:11-18
+
+easterwednesday
+105:1-8 or 118:19-24
+Acts 3:1-10
+
+Luke 24:13-35
+
+easterthursday
+8 or 114 or 118:19-24
+Acts 3:11-26
+
+Luke 24:36b-48
+
+easterfriday
+116:1-8 or 118:19-24
+Acts 4:1-12
+
+John 21:1-14
+
+eastersaturday
+118:14-18 or 118:19-24
+Acts 4:13-21
+
+Mark 16:9-15,20
+
+easter2
+133
+Acts 4:32-35
+1 John 1:1—2:2
+John 20:19-31
+
+easter3
+4
+Acts 3:12-19
+1 John 3:1-7
+Luke 24:36b-48
+
+easter4
+23
+Acts 4:5-12
+1 John 3:16-24
+John 10:11-18
+
+easter5
+22:24-30
+Acts 8:26-40
+1 John 4:7-21
+John 15:1-8
+
+easter6
+98
+Acts 10:44-48
+1 John 5:1-6
+John 15:9-17
+
+ascension1
+47 or 93
+Acts 1:1-11
+Ephesians 1:15-23
+Luke 24:44-53
+
+ascension2
+47 or 93
+Acts 1:1-11
+Ephesians 1:15-23
+Luke 24:44-53
+
+easter7
+1
+Acts 1:15-17,21-26
+1 John 5:9-13
+John 17:6-19
+
+pentecostvigil
+33:12-22 or Canticle 2 or 13 or 130 or Canticle 9 or 104:25-32
+Genesis 11:1-9 or Exodus 19:1-9a,16-20a; 20:18-20 or Ezekiel 37:1-14 or Joel 2:28-32
+Acts 2:1-11 or Romans 8:14-17,22-27
+John 7:37-39a
+
+pentecost1
+104:25-35,37
+Acts 2:1-21 or Ezekiel 37:1-14
+Romans 8:22-27 or Acts 2:1-21
+John 15:26-27; 16:4b-15
+
+pentecost2
+104:25-35,37
+Acts 2:1-21 or Ezekiel 37:1-14
+Romans 8:22-27 or Acts 2:1-21
+John 15:26-27; 16:4b-15
+
+trinity
+29 or Canticle 2 or 13
+Isaiah 6:1-8
+Romans 8:12-17
+John 3:1-17
+
+proper1
+30
+2 Kings 5:1-14
+1 Corinthians 9:24-27
+Mark 1:40-45
+
+proper2
+41
+Isaiah 43:18-25
+2 Corinthians 1:18-22
+Mark 2:1-12
+
+proper3
+103:1-13,22
+Hosea 2:14-20
+2 Corinthians 3:1-6
+Mark 2:13-22
+
+proper4
+139:1-5,12-17
+1 Samuel 3:1-10(11-20)
+2 Corinthians 4:5-12
+Mark 2:23—3:6
+81:1-10
+Deuteronomy 5:12-15
+
+proper5
+138
+1 Samuel 8:4-11(12-15), 16-20(11:14-15)
+2 Corinthians 4:13—5:1
+Mark 3:20-35
+130
+Genesis 3:8-15
+
+proper6
+20
+I Samuel 15:34—16:13, (11-13),14-17
+2 Corinthians 5: 6-10,
+Mark 4:26-34
+92:1-4,11-14
+Ezekiel 17:22-24
+
+proper7
+9:9-20 or 133
+1 Samuel 17:(1a,4-11,19-23),32-49 or 1 Samuel 17:57— 18:5,10-16
+2 Corinthians 6:1-13
+Mark 4:35-41
+107:1-3,23-32
+Job 38:1-11
+
+proper8
+130
+2 Samuel 1:1,7-27
+2 Corinthians 8:7-15
+Mark 5:21-43
+Lamentations 3:21-33* or Psalm 30
+Wisdom of Solomon 1:13-15; 2:23-24
+
+proper9
+48
+2 Samuel 5:1-5,9-10
+2 Corinthians 12:2-10
+Mark 6:1-13
+123
+Ezekiel 2:1-5
+
+proper10
+24
+2 Samuel 6:1-5,12b-19
+Ephesians 1:3-14
+Mark 6:14-29
+85:8-13
+Amos 7:7-15
+
+proper11
+89:20-37
+2 Samuel 7:1-14a
+Ephesians 2:11-22
+Mark 6:30-34,53-56
+23
+Jeremiah 23:1-6
+
+proper12
+14
+2 Samuel 11:1-15
+Ephesians 3:14-21
+John 6:1-21
+145:10-19
+2 Kings 4:42-44
+
+proper13
+51:1-13
+2 Samuel 11:26—12:13a
+Ephesians 4:1-16
+John 6:24-35
+78:23-29
+Exodus 16:2-4,9-15
+
+proper14
+130
+2 Samuel 18:5-9, 15, 31-33
+Ephesians 4:25—5:2
+John 6:35,41-51
+34:1-8
+1 Kings 19:4-8
+
+proper15
+111
+1 Kings 2:10-12; 3:3-14
+Ephesians 5:15-20
+John 6:51-58
+34:9-14
+Proverbs 9:1-6
+
+proper16
+84
+1 Kings 8:(1,6,10-11), 22-30, 41-43
+Ephesians 6:10-20
+John 6:56-69
+34:15-22
+Joshua 24:1-2a,14-18
+
+proper17
+45:1-2,7-10
+Song of Solomon 2:8-13
+James 1:17-27
+Mark 7:1-8,14-15,21-23
+15
+Deuteronomy 4:1-2, 6-9
+
+proper18
+125
+Proverbs 22:1-2, 8-9,22-23
+James 2:1-10(11-13),14-17
+Mark 7:24-37
+146
+Isaiah 35:4-7a
+
+proper19
+19 or Wisdom of Solomon 7:26—8:1*
+Proverbs 1:20-33
+James 3:1-12
+Mark 8:27-38
+116:1-8
+Isaiah 50:4-9a
+
+proper20
+1 or Wisdom of Solomon 1:16—2:1,12-22
+Proverbs 31:10-31
+James 3:13—4:3,7-8a
+Mark 9:30-37
+54
+Jeremiah 11:18-20
+
+proper21
+124
+Esther 7:1-6,9-10; 9:20-22
+James 5:13-20
+Mark 9:38-50
+19:7-14
+Numbers 11:4-6, 10-16,24-29
+
+proper22
+26
+Job 1:1;2:1-10
+Hebrews 1:1-4; 2:5-12
+Mark 10:2-16
+8
+Genesis 2:18-24
+
+proper23
+22:1-15
+Job 23:1-9,16-17
+Hebrews 4:12-16
+Mark 10:17-31
+90:12-17
+Amos 5:6-7,10-15
+
+proper24
+104:1-9,25,37b
+Job 38:1-7,(34-41)
+Hebrews 5:1-10
+Mark 10:35-45
+91:9-16
+Isaiah 53:4-12
+
+proper25
+34:1-8,(19-22)
+Job 42:1-6,10-17
+Hebrews 7:23-28
+Mark 10:46-52
+125
+Jeremiah 31:7-9
+
+proper26
+146
+Ruth 1:1-18
+Hebrews 9:11-14
+Mark 12:28-34
+119:1-8
+Deuteronomy 6:1-9
+
+proper27
+127
+Ruth 3:1-5;4:13-17
+Hebrews 9:24-28
+Mark 12:38-44
+146
+1 Kings 17:8-16
+
+proper28
+1 Samuel 2:1-10*
+1 Samuel 1:4-20
+Hebrews 10:11-14 (15-18)19-25
+Mark 13:1-8
+16
+Daniel 12:1-3
+
+proper29
+132:1-13,(14-19)
+2 Samuel 23:1-7
+Revelation 1:4b-8
+John 18:33-37
+93
+Daniel 7:9-10,13-14
