@@ -769,3 +769,121 @@ Format:
 
 #+RESULTS:
 : Parsed 85 records
+
+** Produce Bible References for Yr B, Track 1 in =readings/refs/yearb/=
+ISSUE: Already done by a different means. Not yet published into sharedprayers. Abandoning this effort.
+Issues:
+  - "Ecclesiaticus" collides with Ecclesiastes; use "Sirach" instead
+  - someday track to could be added with alternate filenames
+Create a directory for each week-code.
+Name files =lesson1=, =lesson2=, =psalm=, =gospel=
+
+#+BEGIN_SRC python :python python3 :results output
+  import csv, os
+  srcfile = "src/refs-ybt1.csv"
+  targetdir = "output/readings/refs/yearb/"
+  codeColumn = 1
+  psalmColumn = 3
+  lesson1Column= 4
+  lesson2Column = 5
+  gospelColumn = 6
+
+  os.makedirs(targetdir, exist_ok=True)
+
+  count=0
+  with open(srcfile, "r") as f:
+      reader = csv.reader(f)
+      next(reader) # skip header line
+      for row in reader:
+          if row[codeColumn] == "": continue # Skip unused rows
+          code = row[codeColumn].strip()
+          gospel = ""
+          if (row[gospelColumn]
+          print (code[gospelColumn].strip())
+          count+=1
+  print ("Wrote " + str(count) + " records.")
+#+END_SRC
+
+#+RESULTS:
+
+          with open (targetdir + "/" + code, "w") as t:
+              t.write(row[introColumn])
+** Produce Liturgies for 2020 (Yr B, Track 1) in =2020=
+Issues:
+- Ensure =/he/propercollect= excludes "The Lord be with you" on Good Friday
+- =he/hymn= should allow link to file, or inner text, else be a rubric allowing a hymn
+- procedure: implement needed shortcodes for:
+    o Lent3 (## The Word of God, ## The Holy Communion, ### Headings)
+    o Good Friday (with special =he/propercollect=)
+    o Palm Sunday
+    o Easter Vigil
+    o Everything else
+    o Modify contents pages to automatically provide next & previous service
+    o Access future/all services regardless of date?
+- Next year:
+    o Epiphany blessings protocol varies in year C
+    o Replacement Passion Sunday scripts for C,A
+    o Lectionaries for Year C, Year A
+    o Year's worth of hymns?
+
+#+BEGIN_SRC python :python python3 :results output
+  import csv, os, datetime
+  srcfile = "src/liturgy2021.csv"
+  targetdir = "output/2021/"
+  dateOutputFormat = "%Y-%m-%d"
+  dateColumn = 0
+  i = 4
+  codeColumn = 4
+  titleColumn = 5
+  prepareColumn = 6
+  psalmStyleColumn = 12
+  postscriptColumn = 32
+
+  def shortcode(x):
+      code = row[x].strip()
+      if code == "":
+          return ""
+      return '{{{{% {0} %}}}}\n'.format(row[x].strip())
+
+  os.makedirs(targetdir, exist_ok=True)
+
+  count=0
+  with open(srcfile, "r") as f:
+      reader = csv.reader(f)
+      next(reader) # skip header line
+      for row in reader:
+          if row[dateColumn] == "": continue # Skip unused rows
+          code = row[codeColumn].strip()
+          date = datetime.datetime.strptime(row[dateColumn], '%m/%d/%y')
+          liturgyDate = date.strftime(dateOutputFormat)
+          publishDate = (date + datetime.timedelta(days=-6)).strftime(dateOutputFormat)
+          filename = 'he-{0:%Y%m%d}-{1}.md'.format(date, code)
+          if (code == "goodfriday" or code == "holysaturday"):
+              filename = '{0}-{1:%Y%m%d}.md'.format(code, date)
+          with open (targetdir + "/" + filename, "w") as t:
+              t.write('---\n')
+              if (code == "goodfriday" or code == "holysaturday"):
+                  t.write('title: {}\n'.format(row[titleColumn].strip()))
+              else:
+                  t.write('title: Holy Eucharist, Rite II ({0})\n'.format(row[titleColumn].strip()))
+              t.write('date: {0}\n'.format(publishDate))
+              t.write('lectionaryyear: yearb\n')
+              t.write('proper: {0}\n'.format(code))
+              t.write('liturgydate: {0}\n'.format(liturgyDate))
+              t.write('bcppage: 355ff.\n')
+              t.write('---\n')
+              for i in range(prepareColumn + 1, postscriptColumn):
+                  if (i == psalmStyleColumn):
+                      t.write('{{% he/propercollect %}}\n')
+                      t.write('{{% he/lesson firstReading %}}\n')
+                      t.write(shortcode(psalmStyleColumn))
+                      t.write('{{% he/lesson secondReading %}}\n')
+                      t.write('{{% he/gospel %}}\n')
+                  else:
+                      t.write(shortcode(i))
+          count+=1
+  print ("Wrote " + str(count) + " records.")
+#+END_SRC
+
+#+RESULTS:
+: Wrote 105 records.
