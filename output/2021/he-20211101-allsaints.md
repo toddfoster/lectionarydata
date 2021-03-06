@@ -6,29 +6,35 @@ proper: allsaints
 liturgydate: 2021-11-01
 bcppage: 355ff.
 ---
-{{% he/hymn %}}
+
+## We Gather in God's Name
 {{% he/greeting/blessedbegod %}}
 {{% he/collect-purity %}}
 {{% he/songofpraise/gloriaexcelsis %}}
 {{% he/propercollect %}}
-{{% he/lesson firstReading %}}
-{{% he/psalms/responsively %}}
-{{% he/lesson secondReading %}}
-{{% he/gospel %}}
-{{% he/hymn %}}
+{{% rubric-sit %}}
+
+## We Hear God's Word
+{{% he/lesson "firstReading" /%}}
+{{% he/psalms/responsively /%}}
+{{% he/lesson "secondReading" /%}}
+{{% he/gospel /%}}
 {{% he/homily/brief %}}
+
+## We Respond in Faith
 {{% he/creed/baptismalvowsrenewal %}}
 {{% he/pop/form3 %}}
 {{% he/peace %}}
+
+## We Offer Ourselves To God
 {{% he/offertory %}}
-{{% he/hymn %}}
-{{% he/prayera %}}
-{{% he/lordsprayer1 %}}
-{{% he/fraction/short %}}
+{{% a %}}
+{{% 1 %}}
+{{% short %}}
+
+## We Receive the Gift of God
 {{% stt/2021/communion %}}
-{{% he/hymn %}}
-{{% he/postcommunion-eternal %}}
-{{% he/blessings/forasaint-long %}}
-{{% he/hymn %}}
-{{% he/dismissal/generic %}}
+{{% eternal %}}
+{{% forasaint-long %}}
+{{% goinpeace %}}
 {{% stt/2021/postscript %}}

@@ -811,15 +811,13 @@ Name files =lesson1=, =lesson2=, =psalm=, =gospel=
 ** Produce Liturgies for 2020 (Yr B, Track 1) in =2020=
 Issues:
 - Ensure =/he/propercollect= excludes "The Lord be with you" on Good Friday
-- =he/hymn= should allow link to file, or inner text, else be a rubric allowing a hymn
-- procedure: implement needed shortcodes for:
-    o Lent3 (## The Word of God, ## The Holy Communion, ### Headings)
+- Only produce liturgies for future dates
+- Check / customize liturgies, Update bcppage for:
     o Good Friday (with special =he/propercollect=)
     o Palm Sunday
     o Easter Vigil
-    o Everything else
-    o Modify contents pages to automatically provide next & previous service
-    o Access future/all services regardless of date?
+- o Modify contents pages to automatically provide next & previous service (based on liturgydate?)
+-  o Access future/all services regardless of date?
 - Next year:
     o Epiphany blessings protocol varies in year C
     o Replacement Passion Sunday scripts for C,A
@@ -830,6 +828,8 @@ Issues:
   import csv, os, datetime
   srcfile = "src/liturgy2021.csv"
   targetdir = "output/2021/"
+  lectionaryyear = "yearb"
+
   dateOutputFormat = "%Y-%m-%d"
   dateColumn = 0
   i = 4
@@ -839,11 +839,27 @@ Issues:
   psalmStyleColumn = 12
   postscriptColumn = 32
 
+  headings = {
+    prepareColumn + 2 : "## We Gather in God's Name",
+    psalmStyleColumn  : "## We Hear God's Word",
+    psalmStyleColumn + 3 : "## We Respond in Faith",
+    psalmStyleColumn + 8 : "## We Offer Ourselves To God",
+    psalmStyleColumn + 13 : "## We Receive the Gift of God"
+    }
+
   def shortcode(x):
-      code = row[x].strip()
-      if code == "":
+      if x == "":
           return ""
-      return '{{{{% {0} %}}}}\n'.format(row[x].strip())
+      return '{{{{% {0} %}}}}\n'.format(x.strip())
+
+  def shortcodeClosed(x):
+      return shortcode(x).replace(" %}}", " /%}}")
+
+  def shortcodeRow(x):
+      return shortcode(row[x].strip())
+
+  def shortcodeRowClosed(x):
+      return shortcodeClosed(row[x].strip())
 
   os.makedirs(targetdir, exist_ok=True)
 
@@ -854,12 +870,14 @@ Issues:
       for row in reader:
           if row[dateColumn] == "": continue # Skip unused rows
           code = row[codeColumn].strip()
-          date = datetime.datetime.strptime(row[dateColumn], '%m/%d/%y')
-          liturgyDate = date.strftime(dateOutputFormat)
-          publishDate = (date + datetime.timedelta(days=-6)).strftime(dateOutputFormat)
-          filename = 'he-{0:%Y%m%d}-{1}.md'.format(date, code)
+          rowDate = datetime.datetime.strptime(row[dateColumn], '%m/%d/%y')
+          if rowDate.date() < datetime.date.today(): continue # Skip past dates
+          # print("DEBUG: Found date {0}".format(rowDate))
+          liturgyDate = rowDate.strftime(dateOutputFormat)
+          publishDate = (rowDate + datetime.timedelta(days=-6)).strftime(dateOutputFormat)
+          filename = 'he-{0:%Y%m%d}-{1}.md'.format(rowDate, code)
           if (code == "goodfriday" or code == "holysaturday"):
-              filename = '{0}-{1:%Y%m%d}.md'.format(code, date)
+              filename = '{0}-{1:%Y%m%d}.md'.format(code, rowDate)
           with open (targetdir + "/" + filename, "w") as t:
               t.write('---\n')
               if (code == "goodfriday" or code == "holysaturday"):
@@ -867,23 +885,29 @@ Issues:
               else:
                   t.write('title: Holy Eucharist, Rite II ({0})\n'.format(row[titleColumn].strip()))
               t.write('date: {0}\n'.format(publishDate))
-              t.write('lectionaryyear: yearb\n')
+              t.write('lectionaryyear: {0}\n'.format(lectionaryyear))
               t.write('proper: {0}\n'.format(code))
               t.write('liturgydate: {0}\n'.format(liturgyDate))
               t.write('bcppage: 355ff.\n')
               t.write('---\n')
               for i in range(prepareColumn + 1, postscriptColumn):
                   if (i == psalmStyleColumn):
-                      t.write('{{% he/propercollect %}}\n')
-                      t.write('{{% he/lesson firstReading %}}\n')
-                      t.write(shortcode(psalmStyleColumn))
-                      t.write('{{% he/lesson secondReading %}}\n')
-                      t.write('{{% he/gospel %}}\n')
+                      t.write(shortcode('he/propercollect'))
+                      t.write(shortcode('rubric-sit'))
+
+                  if (headings.get(i)):
+                      t.write('\n' + headings.get(i) + '\n')
+
+                  if (i == psalmStyleColumn):
+                      t.write(shortcodeClosed('he/lesson "firstReading"'))
+                      t.write(shortcodeRowClosed(psalmStyleColumn))
+                      t.write(shortcodeClosed('he/lesson "secondReading"'))
+                      t.write(shortcodeClosed('he/gospel'))
                   else:
-                      t.write(shortcode(i))
+                      t.write(shortcodeRow(i))
           count+=1
   print ("Wrote " + str(count) + " records.")
 #+END_SRC
 
 #+RESULTS:
-: Wrote 105 records.
+: Wrote 76 records.
