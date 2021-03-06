@@ -837,14 +837,14 @@ Issues:
   titleColumn = 5
   prepareColumn = 6
   psalmStyleColumn = 12
-  postscriptColumn = 32
+  postscriptColumn = 35
 
   headings = {
     prepareColumn + 2 : "## We Gather in God's Name",
     psalmStyleColumn  : "## We Hear God's Word",
-    psalmStyleColumn + 3 : "## We Respond in Faith",
-    psalmStyleColumn + 8 : "## We Offer Ourselves To God",
-    psalmStyleColumn + 13 : "## We Receive the Gift of God"
+    psalmStyleColumn + 4 : "## We Respond in Faith",
+    psalmStyleColumn + 9 : "## We Offer Ourselves To God",
+    psalmStyleColumn + 14 : "## We Receive the Gift of God"
     }
 
   def shortcode(x):
@@ -875,7 +875,7 @@ Issues:
           # print("DEBUG: Found date {0}".format(rowDate))
           liturgyDate = rowDate.strftime(dateOutputFormat)
           publishDate = (rowDate + datetime.timedelta(days=-6)).strftime(dateOutputFormat)
-          filename = 'he-{0:%Y%m%d}-{1}.md'.format(rowDate, code)
+          filename = 'he-{1}.md'.format(rowDate, code)
           if (code == "goodfriday" or code == "holysaturday"):
               filename = '{0}-{1:%Y%m%d}.md'.format(code, rowDate)
           with open (targetdir + "/" + filename, "w") as t:
@@ -905,6 +905,7 @@ Issues:
                       t.write(shortcodeClosed('he/gospel'))
                   else:
                       t.write(shortcodeRow(i))
+              t.write(shortcode('nrsv'))
           count+=1
   print ("Wrote " + str(count) + " records.")
 #+END_SRC

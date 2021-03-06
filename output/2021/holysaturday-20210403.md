@@ -29,3 +29,4 @@ bcppage: 355ff.
 
 ## We Receive the Gift of God
 {{% stt/2021/postscript-covid %}}
+{{% nrsv %}}
