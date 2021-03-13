@@ -42,7 +42,7 @@ John 1:1-14
 
 christmas1
 147 or 147:13-21
-Isaiah 61:10—62:3
+Isaiah 61:10-62:3
 Galatians 3:23-25; 4:4-7
 John 1:1-18
 
@@ -121,7 +121,7 @@ Mark 9:2-9
 ashwednesday
 103 or 103:8-14
 Joel 2:1-2,12-17 or Isaiah 58:1-12
-2 Corinthians 5:20b—6:10
+2 Corinthians 5:20b-6:10
 Matthew 6:1-6,16-21
 
 lent1
@@ -164,7 +164,7 @@ palmsunday
 31:9-16
 Isaiah 50:4-9a
 Philippians 2:5-11
-Mark 14:1—15:47 or Mark 15:1-39,(40-47)
+Mark 14:1-15:47 or Mark 15:1-39,(40-47)
 
 holymonday
 36:5-11
@@ -192,9 +192,9 @@ John 13:1-17,31b-35
 
 goodfriday
 22
-Isaiah 52:13—53:12
+Isaiah 52:13-53:12
 Hebrews 10:16-25 or Hebrews 4:14-16; 5:7-9
-John 18:1—19:42
+John 18:1-19:42
 
 holysaturday
 31:1-4,15-16
@@ -265,7 +265,7 @@ Mark 16:9-15,20
 easter2
 133
 Acts 4:32-35
-1 John 1:1—2:2
+1 John 1:1-2:2
 John 20:19-31
 
 easter3
@@ -354,31 +354,31 @@ Mark 2:13-22
 
 proper4
 139:1-5,12-17
-1 Samuel 3:1-10(11-20)
+1 Samuel 3:1-10,(11-20)
 2 Corinthians 4:5-12
-Mark 2:23—3:6
+Mark 2:23-3:6
 81:1-10
 Deuteronomy 5:12-15
 
 proper5
 138
-1 Samuel 8:4-11(12-15), 16-20(11:14-15)
-2 Corinthians 4:13—5:1
+1 Samuel 8:4-11(12-15), 16-20,(11:14-15)
+2 Corinthians 4:13-5:1
 Mark 3:20-35
 130
 Genesis 3:8-15
 
 proper6
 20
-I Samuel 15:34—16:13, (11-13),14-17
-2 Corinthians 5: 6-10,
+I Samuel 15:34-16:13
+2 Corinthians 5: 6-10, (11-13),14-17
 Mark 4:26-34
 92:1-4,11-14
 Ezekiel 17:22-24
 
 proper7
 9:9-20 or 133
-1 Samuel 17:(1a,4-11,19-23),32-49 or 1 Samuel 17:57— 18:5,10-16
+1 Samuel 17:(1a,4-11,19-23),32-49 or 1 Samuel 17:57- 18:5,10-16
 2 Corinthians 6:1-13
 Mark 4:35-41
 107:1-3,23-32
@@ -426,7 +426,7 @@ John 6:1-21
 
 proper13
 51:1-13
-2 Samuel 11:26—12:13a
+2 Samuel 11:26-12:13a
 Ephesians 4:1-16
 John 6:24-35
 78:23-29
@@ -435,7 +435,7 @@ Exodus 16:2-4,9-15
 proper14
 130
 2 Samuel 18:5-9, 15, 31-33
-Ephesians 4:25—5:2
+Ephesians 4:25-5:2
 John 6:35,41-51
 34:1-8
 1 Kings 19:4-8
@@ -473,7 +473,7 @@ Mark 7:24-37
 Isaiah 35:4-7a
 
 proper19
-19 or Wisdom of Solomon 7:26—8:1*
+19 or Wisdom of Solomon 7:26-8:1*
 Proverbs 1:20-33
 James 3:1-12
 Mark 8:27-38
@@ -481,9 +481,9 @@ Mark 8:27-38
 Isaiah 50:4-9a
 
 proper20
-1 or Wisdom of Solomon 1:16—2:1,12-22
+1 or Wisdom of Solomon 1:16-2:1,12-22
 Proverbs 31:10-31
-James 3:13—4:3,7-8a
+James 3:13-4:3,7-8a
 Mark 9:30-37
 54
 Jeremiah 11:18-20

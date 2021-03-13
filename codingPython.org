@@ -1,6 +1,11 @@
 #+TITLE: Coding Python
 
 Does a literate-ish emacs document make a good place to learn python and develop the re-usable pieces I want for parsing lectionary data? Let's see.
+* TO DO (SOMEDAY)
+** Re-parse lectionary, intelligently computer parentheses for the opinionated track (I like to read all the text!)
+i.e., `1 Samuel 8:4-11(12-15), 16-20(11:14-15)` should become `1 Samuel 8.4-20, 11.14-15`
+
+
 
 * Reference
 - [[https://linuxhint.com/configuring_emacs_python/][Configure like so]]
@@ -645,6 +650,7 @@ Format:
 | Opt. Track II Psalm         |
 | Opt. Track II First Reading |
 | Blank Line                  |
+
 **** Test out file format
 #+BEGIN_SRC python :python python3 :results output
   import os
@@ -912,3 +918,421 @@ Issues:
 
 #+RESULTS:
 : Wrote 76 records.
+
+** Get a Bible text
+Source = [[http://bible.oremus.org/api.html][oremus api]]
+=GET http://bible.oremus.org/?version=NRSVAE&vnum=NO&fnote=NO&show_ref=NO&headings=no&omithidden=YES&passage=Mark%201.1-11
+#+BEGIN_SRC python :python python3 :results output
+  import os, urllib.request, urllib.parse, re
+  from bs4 import BeautifulSoup
+
+  requestSlug = "http://bible.oremus.org/?version=NRSVAE&vnum=NO&fnote=NO&show_ref=NO&headings=NO&omithidden=YES&passage={0}"
+
+  contents = urllib.request.urlopen(requestSlug.format(urllib.parse.quote_plus("Ex 20.1-17"))).read().decode('utf-8')
+
+  # Fix up the contents items I want to handle before BeautifulSoup
+  # contents = contents.replace('<br class="kk"/>', "BREAK")
+  contents = contents.replace("<span class=thinspace> </span>", "")
+
+  soup = BeautifulSoup(contents, 'html.parser')
+
+  bibletext = soup.find('div', {'class': 'bibletext'})
+  for br in soup.find_all("br"):
+      br.replace_with("BREAK")
+  print("bibletext")
+  print(bibletext)
+  result = ''
+  for line in bibletext.findAll("p"):
+     modline = line.text
+     modline = re.sub("\n", " ", modline)
+     modline = re.sub("  ", " ", modline)
+     modline = re.sub(" ", " ", modline) # clean out non-breaking spaces
+     modline = re.sub("BREAK", "\n> ", modline) # preserve coded line breaks
+     if (len(modline) - modline.count(' ') > 1):
+         result += modline.rstrip().rstrip('>').rstrip() + "\n\n"
+  result.replace("BREAK", "\n")
+  print ("FINISHED RESULT:")
+  print (result)
+
+
+  #+END_SRC
+
+** Get the year's Bible texts
+Source = [[http://bible.oremus.org/api.html][oremus api]]
+=GET http://bible.oremus.org/?version=NRSVAE&vnum=NO&fnote=NO&show_ref=NO&headings=no&omithidden=YES&passage=Mark%201.1-11
+#+BEGIN_SRC python :python python3 :results output
+  import os, urllib.request, urllib.parse, re, shutil, time
+  from bs4 import BeautifulSoup
+
+  def getText(ref):
+      requestSlug = "http://bible.oremus.org/?version=NRSVAE&vnum=NO&fnote=NO&show_ref=NO&headings=NO&omithidden=YES&passage={0}"
+      contents = urllib.request.urlopen(requestSlug.format(urllib.parse.quote_plus(ref))).read().decode('utf-8')
+
+      # Fix up the contents items I want to handle before BeautifulSoup
+      contents = contents.replace("<span class=thinspace> </span>", "")
+
+      soup = BeautifulSoup(contents, 'html.parser')
+      bibletext = soup.find('div', {'class': 'bibletext'})
+      for br in soup.find_all("br"):
+          br.replace_with("BREAK")
+      result = ''
+      for line in bibletext.findAll("p"):
+         modline = line.text
+         modline = re.sub("\n", " ", modline)
+         modline = re.sub("  ", " ", modline)
+         modline = re.sub(" ", " ", modline) # clean out non-breaking spaces
+         modline = re.sub("BREAK", "\n> ", modline) # preserve coded line breaks
+         if (len(modline) - modline.count(' ') > 1):
+             result += modline.rstrip().rstrip('>').rstrip() + "\n\n"
+      result.replace("BREAK", "\n")
+      return result.rstrip()
+
+  def textfilename(ref):
+      result = re.sub("[-,.:;()\* ]", "", ref)
+      return result.casefold()
+
+  srcfile = "src/bcprcl-yearb.txt"
+  dest = "output/readings/nrsv/"
+  countRecords = 0
+  countRefs = 0
+  refs = []
+  os.makedirs(dest, exist_ok=True)
+
+  with open(srcfile, "r") as f:
+      weekcode = f.readline().rstrip()
+      while weekcode:
+          countRecords += 1
+          psalm = f.readline().rstrip()
+          firstReading = f.readline().rstrip()
+          secondReading = f.readline().rstrip()
+          gospel = f.readline().rstrip()
+          nextLine = f.readline().rstrip()
+          altReading = ""
+          if nextLine:
+              altPsalm = nextLine
+              altReading = f.readline().rstrip()
+              if f.readline().rstrip():
+                  raise Exception("Unexpected input near " + weekcode + ": " + nextLine)
+
+          # Queue up the readings
+          for line in [firstReading, secondReading, gospel, altReading]:
+              t = line.partition(" or ")
+              if (t[0]) and t[0] not in refs:
+                  refs.append(t[0])
+              while (t[2]):
+                  t = t[2].partition(" or ")
+                  if t[0] not in refs:
+                      refs.append(t[0])
+
+          countRefs += len(refs)
+          while refs:
+              r = refs.pop()
+              print (textfilename(r) + ": " + r)
+              with open (dest + textfilename(r), "w") as t:
+                  t.write(getText(r))
+          time.sleep(2)
+
+          # Start next line
+          weekcode = f.readline().rstrip()
+  print ("Parsed " + str(countRecords) + " records with " + str(countRefs) + " scripture references")
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+mark132437: Mark 13:24-37
+1corinthians139: 1 Corinthians 1:3-9
+isaiah6419: Isaiah 64:1-9
+mark118: Mark 1:1-8
+2peter3815a: 2 Peter 3:8-15a
+isaiah40111: Isaiah 40:1-11
+john1681928: John 1:6-8,19-28
+1thessalonians51624: 1 Thessalonians 5:16-24
+isaiah6114811: Isaiah 61:1-4,8-11
+luke12638: Luke 1:26-38
+romans162527: Romans 16:25-27
+2samuel711116: 2 Samuel 7:1-11,16
+luke21141520: Luke 2:1-14,(15-20)
+titus21114: Titus 2:11-14
+isaiah927: Isaiah 9:2-7
+luke217820: Luke 2:(1-7),8-20
+titus347: Titus 3:4-7
+isaiah62612: Isaiah 62:6-12
+john1114: John 1:1-14
+hebrews114512: Hebrews 1:1-4,(5-12)
+isaiah52710: Isaiah 52:7-10
+john1118: John 1:1-18
+galatians32325447: Galatians 3:23-25; 4:4-7
+isaiah6110—623: Isaiah 61:10—62:3
+luke21521: Luke 2:15-21
+philippians2511: Philippians 2:5-11
+galatians447: Galatians 4:4-7
+numbers62227: Numbers 6:22-27
+matthew2112: Matthew 2:1-12
+luke24152: Luke 2:41-52
+matthew213151923: Matthew 2:13-15,19-23
+ephesians1361519a: Ephesians 1:3-6,15-19a
+jeremiah31714: Jeremiah 31:7-14
+matthew2112: Matthew 2:1-12
+ephesians3112: Ephesians 3:1-12
+isaiah6016: Isaiah 60:1-6
+mark1411: Mark 1:4-11
+acts1917: Acts 19:1-7
+genesis115: Genesis 1:1-5
+john14351: John 1:43-51
+1corinthians61220: 1 Corinthians 6:12-20
+1samuel31101120: 1 Samuel 3:1-10,(11-20)
+mark11420: Mark 1:14-20
+1corinthians72931: 1 Corinthians 7:29-31
+jonah31510: Jonah 3:1-5,10
+mark12128: Mark 1:21-28
+1corinthians8113: 1 Corinthians 8:1-13
+deuteronomy181520: Deuteronomy 18:15-20
+mark12939: Mark 1:29-39
+1corinthians91623: 1 Corinthians 9:16-23
+isaiah402131: Isaiah 40:21-31
+mark14045: Mark 1:40-45
+1corinthians92427: 1 Corinthians 9:24-27
+2kings5114: 2 Kings 5:1-14
+mark2112: Mark 2:1-12
+2corinthians11822: 2 Corinthians 1:18-22
+isaiah431825: Isaiah 43:18-25
+mark21322: Mark 2:13-22
+2corinthians316: 2 Corinthians 3:1-6
+hosea21420: Hosea 2:14-20
+mark929: Mark 9:2-9
+2corinthians436: 2 Corinthians 4:3-6
+2kings2112: 2 Kings 2:1-12
+matthew6161621: Matthew 6:1-6,16-21
+2corinthians520b—610: 2 Corinthians 5:20b—6:10
+isaiah58112: Isaiah 58:1-12
+joel2121217: Joel 2:1-2,12-17
+mark1915: Mark 1:9-15
+1peter31822: 1 Peter 3:18-22
+genesis9817: Genesis 9:8-17
+mark83138: Mark 8:31-38
+romans41325: Romans 4:13-25
+genesis17171516: Genesis 17:1-7,15-16
+john21322: John 2:13-22
+1corinthians11825: 1 Corinthians 1:18-25
+exodus20117: Exodus 20:1-17
+john31421: John 3:14-21
+ephesians2110: Ephesians 2:1-10
+numbers2149: Numbers 21:4-9
+john122033: John 12:20-33
+hebrews5510: Hebrews 5:5-10
+jeremiah313134: Jeremiah 31:31-34
+john121216: John 12:12-16
+mark11111: Mark 11:1-11
+mark151394047: Mark 15:1-39,(40-47)
+mark141—1547: Mark 14:1—15:47
+philippians2511: Philippians 2:5-11
+isaiah5049a: Isaiah 50:4-9a
+john12111: John 12:1-11
+hebrews91115: Hebrews 9:11-15
+isaiah4219: Isaiah 42:1-9
+john122036: John 12:20-36
+1corinthians11831: 1 Corinthians 1:18-31
+isaiah4917: Isaiah 49:1-7
+john132132: John 13:21-32
+hebrews1213: Hebrews 12:1-3
+isaiah5049a: Isaiah 50:4-9a
+john1311731b35: John 13:1-17,31b-35
+1corinthians112326: 1 Corinthians 11:23-26
+exodus12145101114: Exodus 12:1-4,(5-10),11-14
+john181—1942: John 18:1—19:42
+hebrews41416579: Hebrews 4:14-16; 5:7-9
+hebrews101625: Hebrews 10:16-25
+isaiah5213—5312: Isaiah 52:13—53:12
+john193842: John 19:38-42
+matthew275766: Matthew 27:57-66
+1peter418: 1 Peter 4:1-8
+lamentations3191924: Lamentations 3:1-9,19-24
+job14114: Job 14:1-14
+mark1618: Mark 16:1-8
+john20118: John 20:1-18
+1corinthians15111: 1 Corinthians 15:1-11
+isaiah2569: Isaiah 25:6-9
+acts103443: Acts 10:34-43
+mark1618: Mark 16:1-8
+john20118: John 20:1-18
+1corinthians15111: 1 Corinthians 15:1-11
+isaiah2569: Isaiah 25:6-9
+acts103443: Acts 10:34-43
+mark1618: Mark 16:1-8
+john20118: John 20:1-18
+1corinthians15111: 1 Corinthians 15:1-11
+isaiah2569: Isaiah 25:6-9
+acts103443: Acts 10:34-43
+luke241349: Luke 24:13-49
+1corinthians56b8: 1 Corinthians 5:6b-8
+isaiah2569: Isaiah 25:6-9
+matthew28915: Matthew 28:9-15
+acts21422b32: Acts 2:14,22b-32
+john201118: John 20:11-18
+acts23641: Acts 2:36-41
+luke241335: Luke 24:13-35
+acts3110: Acts 3:1-10
+luke2436b48: Luke 24:36b-48
+acts31126: Acts 3:11-26
+john21114: John 21:1-14
+acts4112: Acts 4:1-12
+mark1691520: Mark 16:9-15,20
+acts41321: Acts 4:13-21
+john201931: John 20:19-31
+1john11—22: 1 John 1:1—2:2
+acts43235: Acts 4:32-35
+luke2436b48: Luke 24:36b-48
+1john317: 1 John 3:1-7
+acts31219: Acts 3:12-19
+john101118: John 10:11-18
+1john31624: 1 John 3:16-24
+acts4512: Acts 4:5-12
+john1518: John 15:1-8
+1john4721: 1 John 4:7-21
+acts82640: Acts 8:26-40
+john15917: John 15:9-17
+1john516: 1 John 5:1-6
+acts104448: Acts 10:44-48
+luke244453: Luke 24:44-53
+ephesians11523: Ephesians 1:15-23
+acts1111: Acts 1:1-11
+luke244453: Luke 24:44-53
+ephesians11523: Ephesians 1:15-23
+acts1111: Acts 1:1-11
+john17619: John 17:6-19
+1john5913: 1 John 5:9-13
+acts115172126: Acts 1:15-17,21-26
+john73739a: John 7:37-39a
+romans814172227: Romans 8:14-17,22-27
+acts2111: Acts 2:1-11
+joel22832: Joel 2:28-32
+ezekiel37114: Ezekiel 37:1-14
+exodus1919a1620a201820: Exodus 19:1-9a,16-20a; 20:18-20
+genesis1119: Genesis 11:1-9
+john152627164b15: John 15:26-27; 16:4b-15
+romans82227: Romans 8:22-27
+ezekiel37114: Ezekiel 37:1-14
+acts2121: Acts 2:1-21
+john152627164b15: John 15:26-27; 16:4b-15
+romans82227: Romans 8:22-27
+ezekiel37114: Ezekiel 37:1-14
+acts2121: Acts 2:1-21
+john3117: John 3:1-17
+romans81217: Romans 8:12-17
+isaiah618: Isaiah 6:1-8
+mark14045: Mark 1:40-45
+1corinthians92427: 1 Corinthians 9:24-27
+2kings5114: 2 Kings 5:1-14
+mark2112: Mark 2:1-12
+2corinthians11822: 2 Corinthians 1:18-22
+isaiah431825: Isaiah 43:18-25
+mark21322: Mark 2:13-22
+2corinthians316: 2 Corinthians 3:1-6
+hosea21420: Hosea 2:14-20
+deuteronomy51215: Deuteronomy 5:12-15
+mark223—36: Mark 2:23—3:6
+2corinthians4512: 2 Corinthians 4:5-12
+1samuel31101120: 1 Samuel 3:1-10,(11-20)
+genesis3815: Genesis 3:8-15
+mark32035: Mark 3:20-35
+2corinthians413—51: 2 Corinthians 4:13—5:1
+1samuel841112151620111415: 1 Samuel 8:4-11(12-15), 16-20,(11:14-15)
+ezekiel172224: Ezekiel 17:22-24
+mark42634: Mark 4:26-34
+2corinthians561011131417: 2 Corinthians 5: 6-10, (11-13),14-17
+isamuel1534—1613: I Samuel 15:34—16:13
+job38111: Job 38:1-11
+mark43541: Mark 4:35-41
+2corinthians6113: 2 Corinthians 6:1-13
+1samuel1757—1851016: 1 Samuel 17:57— 18:5,10-16
+1samuel171a41119233249: 1 Samuel 17:(1a,4-11,19-23),32-49
+wisdomofsolomon1131522324: Wisdom of Solomon 1:13-15; 2:23-24
+mark52143: Mark 5:21-43
+2corinthians8715: 2 Corinthians 8:7-15
+2samuel11727: 2 Samuel 1:1,7-27
+ezekiel215: Ezekiel 2:1-5
+mark6113: Mark 6:1-13
+2corinthians12210: 2 Corinthians 12:2-10
+2samuel515910: 2 Samuel 5:1-5,9-10
+amos7715: Amos 7:7-15
+mark61429: Mark 6:14-29
+ephesians1314: Ephesians 1:3-14
+2samuel61512b19: 2 Samuel 6:1-5,12b-19
+jeremiah2316: Jeremiah 23:1-6
+mark630345356: Mark 6:30-34,53-56
+ephesians21122: Ephesians 2:11-22
+2samuel7114a: 2 Samuel 7:1-14a
+2kings44244: 2 Kings 4:42-44
+john6121: John 6:1-21
+ephesians31421: Ephesians 3:14-21
+2samuel11115: 2 Samuel 11:1-15
+exodus1624915: Exodus 16:2-4,9-15
+john62435: John 6:24-35
+ephesians4116: Ephesians 4:1-16
+2samuel1126—1213a: 2 Samuel 11:26—12:13a
+1kings1948: 1 Kings 19:4-8
+john6354151: John 6:35,41-51
+ephesians425—52: Ephesians 4:25—5:2
+2samuel1859153133: 2 Samuel 18:5-9, 15, 31-33
+proverbs916: Proverbs 9:1-6
+john65158: John 6:51-58
+ephesians51520: Ephesians 5:15-20
+1kings210123314: 1 Kings 2:10-12; 3:3-14
+joshua2412a1418: Joshua 24:1-2a,14-18
+john65669: John 6:56-69
+ephesians61020: Ephesians 6:10-20
+1kings816101122304143: 1 Kings 8:(1,6,10-11), 22-30, 41-43
+deuteronomy41269: Deuteronomy 4:1-2, 6-9
+mark71814152123: Mark 7:1-8,14-15,21-23
+james11727: James 1:17-27
+songofsolomon2813: Song of Solomon 2:8-13
+isaiah3547a: Isaiah 35:4-7a
+mark72437: Mark 7:24-37
+james211011131417: James 2:1-10(11-13),14-17
+proverbs2212892223: Proverbs 22:1-2, 8-9,22-23
+isaiah5049a: Isaiah 50:4-9a
+mark82738: Mark 8:27-38
+james3112: James 3:1-12
+proverbs12033: Proverbs 1:20-33
+jeremiah111820: Jeremiah 11:18-20
+mark93037: Mark 9:30-37
+james313—4378a: James 3:13—4:3,7-8a
+proverbs311031: Proverbs 31:10-31
+numbers114610162429: Numbers 11:4-6, 10-16,24-29
+mark93850: Mark 9:38-50
+james51320: James 5:13-20
+esther71691092022: Esther 7:1-6,9-10; 9:20-22
+genesis21824: Genesis 2:18-24
+mark10216: Mark 10:2-16
+hebrews1142512: Hebrews 1:1-4; 2:5-12
+job112110: Job 1:1;2:1-10
+amos5671015: Amos 5:6-7,10-15
+mark101731: Mark 10:17-31
+hebrews41216: Hebrews 4:12-16
+job23191617: Job 23:1-9,16-17
+isaiah53412: Isaiah 53:4-12
+mark103545: Mark 10:35-45
+hebrews5110: Hebrews 5:1-10
+job38173441: Job 38:1-7,(34-41)
+jeremiah3179: Jeremiah 31:7-9
+mark104652: Mark 10:46-52
+hebrews72328: Hebrews 7:23-28
+job42161017: Job 42:1-6,10-17
+deuteronomy619: Deuteronomy 6:1-9
+mark122834: Mark 12:28-34
+hebrews91114: Hebrews 9:11-14
+ruth1118: Ruth 1:1-18
+1kings17816: 1 Kings 17:8-16
+mark123844: Mark 12:38-44
+hebrews92428: Hebrews 9:24-28
+ruth31541317: Ruth 3:1-5;4:13-17
+daniel1213: Daniel 12:1-3
+mark1318: Mark 13:1-8
+hebrews10111415181925: Hebrews 10:11-14 (15-18)19-25
+1samuel1420: 1 Samuel 1:4-20
+daniel79101314: Daniel 7:9-10,13-14
+john183337: John 18:33-37
+revelation14b8: Revelation 1:4b-8
+2samuel2317: 2 Samuel 23:1-7
+Parsed 85 records with 295 scripture references
+#+end_example
