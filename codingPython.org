@@ -1475,6 +1475,8 @@ Issues:
   psalmStyleColumn = 13
   postscriptColumn = 36
 
+  noSecondReading = ["eastervigil", "eastermonday", "eastertuesday", "easterwednesday", "easterthursday", "easterfriday", "eastersaturday"]
+
   headings = {
     prepareColumn + 2 : "## We Gather in God's Name",
     psalmStyleColumn  : "## We Hear God's Word",
@@ -1538,7 +1540,8 @@ Issues:
                   if (i == psalmStyleColumn):
                       t.write(shortcodeClosed('he/lesson "firstReading"'))
                       t.write(shortcodeRowClosed(psalmStyleColumn))
-                      t.write(shortcodeClosed('he/lesson "secondReading"'))
+                      if (not code in noSecondReading):
+                          t.write(shortcodeClosed('he/lesson "secondReading"'))
                       if (code != "goodfriday"):
                           t.write(shortcodeClosed('he/gospel'))
                   elif ("he/eucharisticprayer/" in row[i]):
