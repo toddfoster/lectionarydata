@@ -23,7 +23,7 @@ bcppage: 355ff.
 
 ## We Respond in Faith
 {{% he/creed/nicene %}}
-{{% he/pop/lordhearourprayer %}}
+{{% he/pop/hearourprayer %}}
 {{% stt/2021/peace-covid %}}
 {{% stt/announcements %}}
 
@@ -36,7 +36,7 @@ bcppage: 355ff.
 ## We Receive the Gift of God
 {{% stt/2021/communion-covid %}}
 {{% he/postcommunion/eternal %}}
-{{% he/blessingascension-short %}}
+{{% he/blessing/ascension-short %}}
 {{% he/processional %}}
 {{% he/dismissal/goinpeace %}}
 {{% stt/2021/postscript-covid %}}

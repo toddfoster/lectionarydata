@@ -33,7 +33,7 @@ bcppage: 270ff.
 ## We Receive the Gift of God
 {{% stt/2021/communion-covid %}}
 {{% he/postcommunion/eternal %}}
-{{% he/blessingpalmsunday %}}
+{{% he/blessing/palmsunday %}}
 {{% he/processional %}}
 {{% he/dismissal/goinpeace %}}
 {{% stt/2021/postscript-covid %}}

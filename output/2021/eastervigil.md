@@ -18,12 +18,11 @@ bcppage: 285ff.
 ## We Hear God's Word
 {{% he/lesson "firstReading" /%}}
 {{% he/psalm/responsively /%}}
-{{% he/lesson "secondReading" /%}}
 {{% he/gospel /%}}
 {{% he/eastervigil/greatalleluia %}}
 
 ## We Respond in Faith
-{{% he/pop/lordhearourprayer %}}
+{{% he/pop/hearourprayer %}}
 {{% stt/2021/peace-covid %}}
 {{% stt/announcements %}}
 

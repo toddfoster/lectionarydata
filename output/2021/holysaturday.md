@@ -22,7 +22,8 @@ bcppage: 283/355ff.
 {{% he/homily/brief %}}
 
 ## We Respond in Faith
-{{% he/holysaturday %}}
+{{% burial/inthemidstoflife %}}
+{{% he/lordsprayer/1 %}}
 
 ## We Offer Ourselves To God
 

@@ -22,7 +22,7 @@ bcppage: 274/355ff.
 {{% he/homily/brief %}}
 
 ## We Respond in Faith
-{{% he/maundythursday %}}
+{{% he/maundythursday/washfeet %}}
 {{% he/pop/lordhavemercy %}}
 {{% he/confession %}}
 {{% stt/2021/peace-covid %}}
@@ -37,6 +37,7 @@ bcppage: 274/355ff.
 ## We Receive the Gift of God
 {{% stt/2021/communion-covid %}}
 {{% he/postcommunion/eternal %}}
-{{% he/blessingpalmsunday %}}
+{{% he/blessing/palmsunday %}}
+{{% he/maundythursday/stripaltar %}}
 {{% stt/2021/postscript-covid %}}
 {{% nrsv %}}
