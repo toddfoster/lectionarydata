@@ -262,7 +262,6 @@ James
 Jude
 Revelation
 
-* Output to files
 ** Archive
 *** Produce Psalms in =readings/pss/plaintext=
 Format:
@@ -459,11 +458,103 @@ Format:
 #+RESULTS:
 : Wrote 118 records
 
-** Dump multiple columns into directory =proper=
-Each column gets its own sub-directory. Each entry is named with the week-code. e.g., =proper/collect/epiphany3=
+*** Aborted: Produce Bible References for Yr B, Track 1 in =readings/refs/yearb/=
+ISSUE: Already done by a different means. Not yet published into sharedprayers. Abandoning this effort.
+Issues:
+  - "Ecclesiaticus" collides with Ecclesiastes; use "Sirach" instead
+  - someday track to could be added with alternate filenames
+Create a directory for each week-code.
+Name files =lesson1=, =lesson2=, =psalm=, =gospel=
 
 #+BEGIN_SRC python :python python3 :results output
   import csv, os
+  srcfile = "src/refs-ybt1.csv"
+  targetdir = "output/readings/refs/yearb/"
+  codeColumn = 1
+  psalmColumn = 3
+  lesson1Column= 4
+  lesson2Column = 5
+  gospelColumn = 6
+
+  os.makedirs(targetdir, exist_ok=True)
+
+  count=0
+  with open(srcfile, "r") as f:
+      reader = csv.reader(f)
+      next(reader) # skip header line
+      for row in reader:
+          if row[codeColumn] == "": continue # Skip unused rows
+          code = row[codeColumn].strip()
+          gospel = ""
+          if (row[gospelColumn]
+          print (code[gospelColumn].strip())
+          count+=1
+  print ("Wrote " + str(count) + " records.")
+#+END_SRC
+
+#+RESULTS:
+
+          with open (targetdir + "/" + code, "w") as t:
+              t.write(row[introColumn])
+*** Get a single Bible text
+Source = [[http://bible.oremus.org/api.html][oremus api]]
+=GET http://bible.oremus.org/?version=NRSVAE&vnum=NO&fnote=NO&show_ref=NO&headings=no&omithidden=YES&passage=Mark%201.1-11
+#+BEGIN_SRC python :python python3 :results output
+  import os, urllib.request, urllib.parse, re
+  from bs4 import BeautifulSoup
+
+  requestSlug = "http://bible.oremus.org/?version=NRSVAE&vnum=NO&fnote=NO&show_ref=NO&headings=NO&omithidden=YES&passage={0}"
+
+  contents = urllib.request.urlopen(requestSlug.format(urllib.parse.quote_plus("Ex 20.1-17"))).read().decode('utf-8')
+
+  # Fix up the contents items I want to handle before BeautifulSoup
+  # contents = contents.replace('<br class="kk"/>', "BREAK")
+  contents = contents.replace("<span class=thinspace> </span>", "")
+
+  soup = BeautifulSoup(contents, 'html.parser')
+
+  bibletext = soup.find('div', {'class': 'bibletext'})
+  for br in soup.find_all("br"):
+      br.replace_with("BREAK")
+  print("bibletext")
+  print(bibletext)
+  result = ''
+  for line in bibletext.findAll("p"):
+     modline = line.text
+     modline = re.sub("\n", " ", modline)
+     modline = re.sub("  ", " ", modline)
+     modline = re.sub(" ", " ", modline) # clean out non-breaking spaces
+     modline = re.sub("BREAK", "\n> ", modline) # preserve coded line breaks
+     if (len(modline) - modline.count(' ') > 1):
+         result += modline.rstrip().rstrip('>').rstrip() + "\n\n"
+  result.replace("BREAK", "\n")
+  print ("FINISHED RESULT:")
+  print (result)
+
+
+  #+END_SRC
+
+
+* Generate lectionary data
+** =/proper/collect=, =preface=, =title= for Sundays and Holy Days
+Sundays & Holy Days taken from Calendar (BCP 15ff)
+
+Input file columns:
+0: Order (ignored)
+1: code (based on title)
+2: Collect (Contemporary: BCP 211ff.)
+3: Preface (BCP 211ff.)
+4: Title (BCP 31ff.)
+
+Dump multiple columns into directory =proper=
+Each column gets its own sub-directory. Each entry is named with the week-code. e.g., =proper/collect/epiphany3=
+
+Most Holy Days have the same readings from year to year. All Saints and Thanksgiving are the exceptions. Therefore these get listead as allsaintsa, allsaintsb, allsaintsc, thanksgivinga, etc.
+
+
+#+BEGIN_SRC python :python python3 :results output
+  import csv, os
+  inputfile = "src/collects.csv"
   targetdir = "output/proper/"
   codeColumn = 1
   fields = {
@@ -476,7 +567,7 @@ Each column gets its own sub-directory. Each entry is named with the week-code. 
     os.makedirs(targetdir + dir, exist_ok=True)
 
   count=0
-  with open("src/collects.csv", "r") as f:
+  with open(inputfile, "r") as f:
       reader = csv.reader(f)
       next(reader) # skip header line
       for row in reader:
@@ -491,8 +582,8 @@ Each column gets its own sub-directory. Each entry is named with the week-code. 
 #+END_SRC
 
 #+RESULTS:
-: Wrote 115 records for each of 3 fields.
-** Produce books of Bible lookup in =readings/intro=
+: Wrote 119 records for each of 3 fields.
+** How to introduce each book of Bible: =/readings/intro=
 Issue:
   - Philippians and Philemon require five characters to distinguish
   - Job 1 and Job 2 should use the same entry
@@ -524,7 +615,7 @@ Each file is named with the first five non-space characters, in lower case.
 #+RESULTS:
 : Wrote 82 records.
 
-** Better Psalm parser
+** Psalms: =/readings/pss/plaintext=, =markdown=, =responsively=
 Load each Psalm into memory at once, then format & output as needed
 Format of input file:
   - Blank line between Psalms
@@ -638,7 +729,7 @@ Format of input file:
 #+RESULTS:
 : Wrote 6060 lines in 450 files for 150 Psalms.
 
-** Eucharistic Lectionary
+** Eucharistic Lectionary: =readings/yearb/opinionated=, =track1=, =track2=
 *** Parse =src/bcprcl-yearb.txt=
 Format:
 |-----------------------------|
@@ -776,188 +867,108 @@ Format:
 #+RESULTS:
 : Parsed 85 records
 
-** Produce Bible References for Yr B, Track 1 in =readings/refs/yearb/=
-ISSUE: Already done by a different means. Not yet published into sharedprayers. Abandoning this effort.
-Issues:
-  - "Ecclesiaticus" collides with Ecclesiastes; use "Sirach" instead
-  - someday track to could be added with alternate filenames
-Create a directory for each week-code.
-Name files =lesson1=, =lesson2=, =psalm=, =gospel=
+** Eucharistic Lectionary for Holy Days: =readings/holydays/withoptions=, =opinionated=
+*** Parse =src/bcprcl-holydays.txt=
+Format:
+|-----------------------------|
+| week-code                   |
+| date                        |
+| Psalm                       |
+| First Reading               |
+| Second Reading              |
+| Gospel                      |
+| Blank Line                  |
 
+*** Test out file format
 #+BEGIN_SRC python :python python3 :results output
-  import csv, os
-  srcfile = "src/refs-ybt1.csv"
-  targetdir = "output/readings/refs/yearb/"
-  codeColumn = 1
-  psalmColumn = 3
-  lesson1Column= 4
-  lesson2Column = 5
-  gospelColumn = 6
-
-  os.makedirs(targetdir, exist_ok=True)
-
-  count=0
+  import os
+  srcfile = "src/bcprcl-holydays.txt"
+  countRecords = 0
   with open(srcfile, "r") as f:
-      reader = csv.reader(f)
-      next(reader) # skip header line
-      for row in reader:
-          if row[codeColumn] == "": continue # Skip unused rows
-          code = row[codeColumn].strip()
-          gospel = ""
-          if (row[gospelColumn]
-          print (code[gospelColumn].strip())
-          count+=1
-  print ("Wrote " + str(count) + " records.")
+      weekcode = f.readline().rstrip()
+      while weekcode:
+          # print ("Week found: " + weekcode)
+          countRecords += 1
+          recdate = f.readline().rstrip() # Date
+          recpsalm = f.readline().rstrip() #Psalm
+          rectnk = f.readline().rstrip() # Heb Rdg
+          recepi = f.readline().rstrip() # Epistle Rdg
+          recgos = f.readline().rstrip() # Gospel Rdg
+          # print("DEBUG: " + weekcode + ": " + recgos)
+          nextLine = f.readline().rstrip() # Blank
+          if nextLine:
+              raise Exception("Unexpected input near " + weekcode + ": " + nextLine)
+          weekcode = f.readline().rstrip()
+  print ("Found " + str(countRecords) + " records")
 #+END_SRC
 
 #+RESULTS:
+: Found 35 records
 
-          with open (targetdir + "/" + code, "w") as t:
-              t.write(row[introColumn])
-** Produce Liturgies for 2020 (Yr B, Track 1) in =2020=
-Issues:
-- Ensure =/he/propercollect= excludes "The Lord be with you" on Good Friday
-- Only produce liturgies for future dates
-- Check / customize liturgies, Update bcppage for:
-    o Good Friday (with special =he/propercollect=)
-    o Palm Sunday
-    o Easter Vigil
-- o Modify contents pages to automatically provide next & previous service (based on liturgydate?)
--  o Access future/all services regardless of date?
-- Next year:
-    o Epiphany blessings protocol varies in year C
-    o Replacement Passion Sunday scripts for C,A
-    o Lectionaries for Year C, Year A
-    o Year's worth of hymns?
+*** Parse out file
+Code below is from parsing YearB - redo for Holy Days
+Simplified by creating separate codes for allsaints/thanksgiving years a/b/c: e.g., thanksgivingb
+Change Holy Day reading for St. Luke from Ecclesiaticus to Sirach to avoid confusion(?)
 
 #+BEGIN_SRC python :python python3 :results output
-  import csv, os, datetime
-  srcfile = "src/liturgy2021.csv"
-  targetdir = "output/2021/"
-  lectionaryyear = "yearb"
+    import os
+    srcfile = "src/bcprcl-holydays.txt"
+    opinionated = "output/readings/holydays/opinionated/"
+    original = "output/readings/holydays/withoptions/"
+    countRecords = 0
+    with open(srcfile, "r") as f:
+        weekcode = f.readline().rstrip()
+        while weekcode:
+            # print ("Week found: " + weekcode)
+            countRecords += 1
+            recdate = f.readline().rstrip() # Date
+            recpsalm = f.readline().rstrip() #Psalm
+            rectnk = f.readline().rstrip() # Heb Rdg
+            recepi = f.readline().rstrip() # Epistle Rdg
+            recgos = f.readline().rstrip() # Gospel Rdg
+            # print("DEBUG: " + weekcode + ": " + recgos)
+            nextLine = f.readline().rstrip() # Blank
+            if nextLine:
+                raise Exception("Unexpected input near " + weekcode + ": " + nextLine)
 
-  dateOutputFormat = "%Y-%m-%d"
-  dateColumn = 0
-  i = 4
-  codeColumn = 4
-  titleColumn = 5
-  prepareColumn = 6
-  psalmStyleColumn = 12
-  postscriptColumn = 35
+            # Output records
+            # Output original readings (sometimes having options indicated by "or")
+            dest = original + weekcode + "/"
+            os.makedirs(dest, exist_ok=False)
+            with open (dest + "psalm", "w") as t:
+                t.write(recpsalm)
+            if rectnk:
+                with open (dest + "firstReading", "w") as t:
+                    t.write(rectnk)
+            if recepi:
+                with open (dest + "secondReading", "w") as t:
+                    t.write(recepi)
+            with open (dest + "gospel", "w") as t:
+                t.write(recgos)
 
-  headings = {
-    prepareColumn + 2 : "## We Gather in God's Name",
-    psalmStyleColumn  : "## We Hear God's Word",
-    psalmStyleColumn + 4 : "## We Respond in Faith",
-    psalmStyleColumn + 9 : "## We Offer Ourselves To God",
-    psalmStyleColumn + 14 : "## We Receive the Gift of God"
-    }
+            # Output opinionated readings
+            ## Always choose the first option ("or")
+            dest = opinionated + weekcode + "/"
+            os.makedirs(dest, exist_ok=False)
+            with open (dest + "psalm", "w") as t:
+                t.write(recpsalm.partition(" or ")[0])
+            if rectnk:
+                with open (dest + "firstReading", "w") as t:
+                    t.write(rectnk.partition(" or ")[0])
+            if recepi:
+                with open (dest + "secondReading", "w") as t:
+                    t.write(recepi.partition(" or ")[0])
+            with open (dest + "gospel", "w") as t:
+                t.write(recgos.partition(" or ")[0])
 
-  def shortcode(x):
-      if x == "":
-          return ""
-      return '{{{{% {0} %}}}}\n'.format(x.strip())
-
-  def shortcodeClosed(x):
-      return shortcode(x).replace(" %}}", " /%}}")
-
-  def shortcodeRow(x):
-      return shortcode(row[x].strip())
-
-  def shortcodeRowClosed(x):
-      return shortcodeClosed(row[x].strip())
-
-  os.makedirs(targetdir, exist_ok=True)
-
-  count=0
-  with open(srcfile, "r") as f:
-      reader = csv.reader(f)
-      next(reader) # skip header line
-      for row in reader:
-          if row[dateColumn] == "": continue # Skip unused rows
-          code = row[codeColumn].strip()
-          rowDate = datetime.datetime.strptime(row[dateColumn], '%m/%d/%y')
-          if rowDate.date() < datetime.date.today(): continue # Skip past dates
-          # print("DEBUG: Found date {0}".format(rowDate))
-          liturgyDate = rowDate.strftime(dateOutputFormat)
-          publishDate = (rowDate + datetime.timedelta(days=-6)).strftime(dateOutputFormat)
-          filename = 'he-{1}.md'.format(rowDate, code)
-          if (code == "goodfriday" or code == "holysaturday"):
-              filename = '{0}-{1:%Y%m%d}.md'.format(code, rowDate)
-          with open (targetdir + "/" + filename, "w") as t:
-              t.write('---\n')
-              if (code == "goodfriday" or code == "holysaturday"):
-                  t.write('title: {}\n'.format(row[titleColumn].strip()))
-              else:
-                  t.write('title: Holy Eucharist, Rite II ({0})\n'.format(row[titleColumn].strip()))
-              t.write('date: {0}\n'.format(publishDate))
-              t.write('lectionaryyear: {0}\n'.format(lectionaryyear))
-              t.write('proper: {0}\n'.format(code))
-              t.write('liturgydate: {0}\n'.format(liturgyDate))
-              t.write('bcppage: 355ff.\n')
-              t.write('---\n')
-              for i in range(prepareColumn + 1, postscriptColumn):
-                  if (i == psalmStyleColumn):
-                      t.write(shortcode('he/propercollect'))
-                      t.write(shortcode('rubric-sit'))
-
-                  if (headings.get(i)):
-                      t.write('\n' + headings.get(i) + '\n')
-
-                  if (i == psalmStyleColumn):
-                      t.write(shortcodeClosed('he/lesson "firstReading"'))
-                      t.write(shortcodeRowClosed(psalmStyleColumn))
-                      t.write(shortcodeClosed('he/lesson "secondReading"'))
-                      t.write(shortcodeClosed('he/gospel'))
-                  else:
-                      t.write(shortcodeRow(i))
-              t.write(shortcode('nrsv'))
-          count+=1
-  print ("Wrote " + str(count) + " records.")
+            weekcode = f.readline().rstrip()
+    print ("Found " + str(countRecords) + " records")
 #+END_SRC
 
 #+RESULTS:
-: Wrote 76 records.
-
-** Get a Bible text
-Source = [[http://bible.oremus.org/api.html][oremus api]]
-=GET http://bible.oremus.org/?version=NRSVAE&vnum=NO&fnote=NO&show_ref=NO&headings=no&omithidden=YES&passage=Mark%201.1-11
-#+BEGIN_SRC python :python python3 :results output
-  import os, urllib.request, urllib.parse, re
-  from bs4 import BeautifulSoup
-
-  requestSlug = "http://bible.oremus.org/?version=NRSVAE&vnum=NO&fnote=NO&show_ref=NO&headings=NO&omithidden=YES&passage={0}"
-
-  contents = urllib.request.urlopen(requestSlug.format(urllib.parse.quote_plus("Ex 20.1-17"))).read().decode('utf-8')
-
-  # Fix up the contents items I want to handle before BeautifulSoup
-  # contents = contents.replace('<br class="kk"/>', "BREAK")
-  contents = contents.replace("<span class=thinspace> </span>", "")
-
-  soup = BeautifulSoup(contents, 'html.parser')
-
-  bibletext = soup.find('div', {'class': 'bibletext'})
-  for br in soup.find_all("br"):
-      br.replace_with("BREAK")
-  print("bibletext")
-  print(bibletext)
-  result = ''
-  for line in bibletext.findAll("p"):
-     modline = line.text
-     modline = re.sub("\n", " ", modline)
-     modline = re.sub("  ", " ", modline)
-     modline = re.sub(" ", " ", modline) # clean out non-breaking spaces
-     modline = re.sub("BREAK", "\n> ", modline) # preserve coded line breaks
-     if (len(modline) - modline.count(' ') > 1):
-         result += modline.rstrip().rstrip('>').rstrip() + "\n\n"
-  result.replace("BREAK", "\n")
-  print ("FINISHED RESULT:")
-  print (result)
-
-
-  #+END_SRC
-
-** Get the year's Bible texts
+: Found 35 records
+** Get the RCL Bible texts
+Next time: get code from below for holy days to check for already downloaded passages &  avoid duplicating downloads (instead of abusing oremus)
 Source = [[http://bible.oremus.org/api.html][oremus api]]
 =GET http://bible.oremus.org/?version=NRSVAE&vnum=NO&fnote=NO&show_ref=NO&headings=no&omithidden=YES&passage=Mark%201.1-11
 #+BEGIN_SRC python :python python3 :results output
@@ -1336,3 +1347,210 @@ revelation14b8: Revelation 1:4b-8
 2samuel2317: 2 Samuel 23:1-7
 Parsed 85 records with 295 scripture references
 #+end_example
+** Get the Holy Days Bible texts
+Source = [[http://bible.oremus.org/api.html][oremus api]]
+=GET http://bible.oremus.org/?version=NRSVAE&vnum=NO&fnote=NO&show_ref=NO&headings=no&omithidden=YES&passage=Mark%201.1-11
+#+BEGIN_SRC python :python python3 :results output
+  import os, urllib.request, urllib.parse, re, shutil, time
+  from bs4 import BeautifulSoup
+
+  def getText(ref):
+      requestSlug = "http://bible.oremus.org/?version=NRSVAE&vnum=NO&fnote=NO&show_ref=NO&headings=NO&omithidden=YES&passage={0}"
+      contents = urllib.request.urlopen(requestSlug.format(urllib.parse.quote_plus(ref))).read().decode('utf-8')
+
+      # Fix up the contents items I want to handle before BeautifulSoup
+      contents = contents.replace("<span class=thinspace> </span>", "")
+
+      soup = BeautifulSoup(contents, 'html.parser')
+      bibletext = soup.find('div', {'class': 'bibletext'})
+      for br in soup.find_all("br"):
+          br.replace_with("BREAK")
+      result = ''
+      if not bibletext:
+          print ("ERROR: no output from oremus")
+          return ""
+      for line in bibletext.findAll("p"):
+         modline = line.text
+         modline = re.sub("\n", " ", modline)
+         modline = re.sub("  ", " ", modline)
+         modline = re.sub(" ", " ", modline) # clean out non-breaking spaces
+         modline = re.sub("BREAK", "\n> ", modline) # preserve coded line breaks
+         if (len(modline) - modline.count(' ') > 1):
+             result += modline.rstrip().rstrip('>').rstrip() + "\n\n"
+      result.replace("BREAK", "\n")
+      return result.rstrip()
+
+  def textfilename(ref):
+      result = re.sub("[-,.:;()\* ]", "", ref)
+      return result.casefold()
+
+  dest = "output/readings/nrsv/"
+  countRecords = 0
+  countRefs = 0
+  countDownloads = 0
+  countFailures = 0
+  refs = []
+  os.makedirs(dest, exist_ok=True)
+
+  srcfile = "src/bcprcl-holydays.txt"
+  with open(srcfile, "r") as f:
+      weekcode = f.readline().rstrip()
+      while weekcode:
+          # print ("Week found: " + weekcode)
+          countRecords += 1
+          recdate = f.readline().rstrip() # Date
+          recpsalm = f.readline().rstrip() #Psalm
+          rectnk = f.readline().rstrip() # Heb Rdg
+          recepi = f.readline().rstrip() # Epistle Rdg
+          recgos = f.readline().rstrip() # Gospel Rdg
+          nextLine = f.readline().rstrip() # Blank
+          if nextLine:
+              raise Exception("Unexpected input near " + weekcode + ": " + nextLine)
+
+          # Queue up the readings
+          for line in [rectnk, recepi, recgos]:
+              t = line.partition(" or ")
+              if (t[0]) and t[0] not in refs:
+                  refs.append(t[0])
+              while (t[2]):
+                  t = t[2].partition(" or ")
+                  if t[0] not in refs:
+                      refs.append(t[0])
+
+          countRefs += len(refs)
+          while refs:
+              r = refs.pop()
+              # print (textfilename(r) + ": " + r)
+              if not os.path.isfile(dest + textfilename(r)):
+                  text = getText(r)
+                  if text:
+                      with open (dest + textfilename(r), "w") as t:
+                          t.write(text)
+                  else:
+                      countFailures += 1
+                  countDownloads += 1
+
+                  time.sleep(1)
+
+
+          # Start next line
+          weekcode = f.readline().rstrip()
+  print ("Parsed " + str(countRecords) + " records with " + str(countRefs) + " scripture references, with  " + str(countDownloads) + " downloads and " + str(countFailures) + " failed")
+#+END_SRC
+
+#+RESULTS:
+: Parsed 35 records with 108 scripture references, with  1 downloads and 0 failed
+
+
+
+** Produce Liturgies for 2020 (Yr B, Track 1) in =2020=
+Issues:
+- Ensure =/he/propercollect= excludes "The Lord be with you" on Good Friday
+- Only produce liturgies for future dates
+- Check / customize liturgies, Update bcppage for:
+    o Good Friday (with special =he/propercollect=)
+    o Palm Sunday
+    o Easter Vigil
+- o Modify contents pages to automatically provide next & previous service (based on liturgydate?)
+-  o Access future/all services regardless of date?
+- Next year:
+    o Epiphany blessings protocol varies in year C
+    o Replacement Passion Sunday scripts for C,A
+    o Lectionaries for Year C, Year A
+    o Year's worth of hymns?
+
+#+BEGIN_SRC python :python python3 :results output
+  import csv, os, datetime
+  srcfile = "src/liturgy2021.csv"
+  targetdir = "output/2021/"
+  lectionaryyear = "yearb"
+
+  dateOutputFormat = "%Y-%m-%d"
+  dateColumn = 0
+  i = 4
+  codeColumn = 4
+  pageColumn = 5
+  titleColumn = 6
+  prepareColumn = 7
+  psalmStyleColumn = 13
+  postscriptColumn = 36
+
+  headings = {
+    prepareColumn + 2 : "## We Gather in God's Name",
+    psalmStyleColumn  : "## We Hear God's Word",
+    psalmStyleColumn + 4 : "## We Respond in Faith",
+    psalmStyleColumn + 9 : "## We Offer Ourselves To God",
+    psalmStyleColumn + 14 : "## We Receive the Gift of God"
+    }
+
+  def shortcode(x):
+      if x == "":
+          return ""
+      return '{{{{% {0} %}}}}\n'.format(x.strip())
+
+  def shortcodeClosed(x):
+      return shortcode(x).replace(" %}}", " /%}}")
+
+  def shortcodeRow(x):
+      return shortcode(row[x].strip())
+
+  def shortcodeRowClosed(x):
+      return shortcodeClosed(row[x].strip())
+
+  os.makedirs(targetdir, exist_ok=True)
+
+  count=0
+  with open(srcfile, "r") as f:
+      reader = csv.reader(f)
+      next(reader) # skip header line
+      for row in reader:
+          if row[dateColumn] == "": continue # Skip unused rows
+          code = row[codeColumn].strip()
+          rowDate = datetime.datetime.strptime(row[dateColumn], '%m/%d/%y')
+          if rowDate.date() <= datetime.date.today(): continue # Skip past & current dates
+          # print("DEBUG: Found date {0}".format(rowDate))
+          # filename = 'he-{1}.md'.format(rowDate, code)
+          # if (code == "goodfriday" or code == "holysaturday"):
+              # filename = '{0}-{1:%Y%m%d}.md'.format(code, rowDate)
+          with open (targetdir + "/" + code + ".md", "w") as t:
+              t.write('---\n')
+              if (code == "goodfriday" or code == "holysaturday"):
+                  t.write('title: {}\n'.format(row[titleColumn].strip()))
+              else:
+                  t.write('title: Holy Eucharist, Rite II ({0})\n'.format(row[titleColumn].strip()))
+              liturgyDate = rowDate.strftime(dateOutputFormat)
+              t.write('date: {0}\n'.format(liturgyDate))
+              # publishDate = (rowDate + datetime.timedelta(days=-6)).strftime(dateOutputFormat)
+              # t.write('publishdate: {0}\n'.format(publishDate))
+              t.write('lectionaryyear: {0}\n'.format(lectionaryyear))
+              t.write('proper: {0}\n'.format(code))
+              t.write('bcppage: {0}ff.\n'.format(row[pageColumn].strip()))
+              t.write('---\n')
+              for i in range(prepareColumn + 1, postscriptColumn):
+                  if (i == psalmStyleColumn and code != "goodfriday"):
+                      t.write(shortcode('he/propercollect'))
+                      t.write(shortcode('rubric-sit'))
+
+                  if (headings.get(i)):
+                      if (i<=psalmStyleColumn or code != "goodfriday"):
+                          t.write('\n' + headings.get(i) + '\n')
+
+                  if (i == psalmStyleColumn):
+                      t.write(shortcodeClosed('he/lesson "firstReading"'))
+                      t.write(shortcodeRowClosed(psalmStyleColumn))
+                      t.write(shortcodeClosed('he/lesson "secondReading"'))
+                      if (code != "goodfriday"):
+                          t.write(shortcodeClosed('he/gospel'))
+                  elif ("he/eucharisticprayer/" in row[i]):
+                      t.write(shortcodeRowClosed(i))
+                  else:
+                      t.write(shortcodeRow(i))
+              t.write(shortcode('nrsv'))
+          count+=1
+  print ("Wrote " + str(count) + " records.")
+#+END_SRC
+
+#+RESULTS:
+: Wrote 72 records.
+
+**
