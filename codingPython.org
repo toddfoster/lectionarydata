@@ -1442,6 +1442,216 @@ Source = [[http://bible.oremus.org/api.html][oremus api]]
 : Parsed 35 records with 108 scripture references, with  1 downloads and 0 failed
 
 
+** Get texts from lectionarypage.net
+Mirrored lectionarypage.net (4.0Mb) with = wget -mkp -l2 -N --wait=2 --include-directories=YearA_RCL/*,YearB_RCL/*,YearC_RCL/*,YearABC_RCL/*,YearABC/* http://lectionarypage.net/CalndrsIndexes/TxtindexABCH_RCL.html=, canceling when it started grabbing docx files.
+
+Establish whether there are collisions to worry about in the processed textfilenames
+Count duplicate references (for curiosity's sake)
+Investigate references with mis-matched div's; repair
+#+BEGIN_SRC python :python python3 :results output
+  import os, urllib.request, urllib.parse, re, shutil, time, subprocess
+  from bs4 import BeautifulSoup
+  import bs4
+
+  def textfilename(ref):
+      result = re.sub("[-,.:;()\* ]", "", ref)
+      return result.casefold()
+
+  refs = {}
+  collisions = []
+  dupes = 0
+
+  tags = []
+  classes = []
+
+  srcfiles = subprocess.check_output(["find ../lectionarypage.net -name *.html"], shell=True, text=True).split("\n")
+  print("Count of files: " + str(len(srcfiles)))
+
+  for s in srcfiles:
+      # Skip blank lines
+      if len(s)==0:
+        continue
+      # print("Processing " + s)
+
+      soup = False
+      try:
+          soup = BeautifulSoup(open(s), 'html.parser')
+      except Exception:
+          print ("FAILED to make BeautifulSoup for " + s)
+          continue
+
+      # https://beautiful-soup-4.readthedocs.io/en/latest/index.html
+      # Scriptures contained in articles
+      # iterate through articles;
+      # verify number of citations = number of div's
+          # -- there are some nested div's,
+          # -- sometimes div is missing
+          # -- supplied missing div's; nested may not be a problem
+      # TODO: possibly separate out all tags ocurring between h3's within in article
+      # TODO: Figure out which tags to pay attention to (e.g., psalm-text or poetry, <p>)
+
+      for article in soup('article'):
+          citations = article.find_all('h3', {'class': 'lessonCitation'})
+          divs = article.find_all('div')
+          if (len(citations) != len(divs)):
+              print("WARNING: citations ({}) > div's({}) in {}".format(len(citations), len(divs), s))
+              continue
+          for i in range(len(citations)):
+              c = citations[i]
+              d = divs[i]
+
+              citation = c.string.strip()
+
+              # Check for duplicate citations
+              filename = textfilename(citation)
+              if filename in refs:
+                  if(refs[filename] == citation):
+                      dupes += 1
+                  else:
+                      print("\nCOLLISION: " + filename + " " + refs[filename] + " " + citation + "\n")
+                  continue
+              refs[filename] = citation
+              #print(citation)
+              # print(d.getText())
+              for t in d.contents:
+                  if (t == '\n'):
+                      continue
+                  if (type(t) != bs4.element.Tag):
+                      continue
+                  if (not t.name in tags):
+                       tags.append(t.name)
+                  if (t.has_attr('class')):
+                      if (not t.attrs['class'] in classes):
+                          classes.append(t.attrs['class'])
+
+
+  print("Unique Refs count = " + str(len(refs)))
+  print("Duplicates = {}".format(dupes))
+  print("Tags: {}".format(tags))
+  print("Classes: {}".format(classes))
+
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Count of files: 236
+FAILED to make BeautifulSoup for ../lectionarypage.net/YearC_RCL/Easter/CEasVigil_RCL.html
+
+COLLISION: habakkuk114214 Habakkuk 1:1-4, 2:1-4 Habakkuk 1:1-4; 2:1-4
+
+FAILED to make BeautifulSoup for ../lectionarypage.net/YearB_RCL/Easter/BEasVigil_RCL.html
+FAILED to make BeautifulSoup for ../lectionarypage.net/YearA_RCL/Easter/AEasVigil_RCL.html
+
+COLLISION: psalm72171014 Psalm 72:1-7,10-14 Psalm 72:1-7, 10-14
+
+Unique Refs count = 928
+Duplicates = 235
+Tags: ['p', 'br', 'blockquote', 'span']
+Classes: [['poetryText'], ['psalmText'], ['lessonText'], ['poetryIndent'], ['”lessonText”'], ['lessonIndent'], ['“lessonText“'], ['initCap'], ['lordSmallCaps'], ['collectText']]
+#+end_example
+
+
+Output html for use in sharedprayers
+TODO: Psalms: retain latin title
+TODO: Psalms: format for responsive reading
+#+BEGIN_SRC python :python python3 :results output
+  import os, urllib.request, urllib.parse, re, shutil, time, subprocess
+  from bs4 import BeautifulSoup
+  import bs4
+
+  def textfilename(ref):
+      result = re.sub("[-,.:;()\* ]", "", ref)
+      return result.casefold()
+
+  refs = {}
+
+  srcfiles = subprocess.check_output(["find ../lectionarypage.net -name *.html"], shell=True, text=True).split("\n")
+  print("Count of files: " + str(len(srcfiles)))
+
+  desthtml = "output/readings/lectionarypage.net/html/"
+  desttext = "output/readings/lectionarypage.net/text/"
+  destmark = "output/readings/lectionarypage.net/md/"
+  os.makedirs(desthtml, exist_ok=True)
+  os.makedirs(desttext, exist_ok=True)
+  os.makedirs(destmark, exist_ok=True)
+
+  for s in srcfiles:
+      # Skip blank lines
+      if len(s)==0:
+        continue
+      # print("Processing " + s)
+
+      soup = False
+      try:
+          soup = BeautifulSoup(open(s), 'html.parser')
+      except Exception:
+          print ("FAILED to make BeautifulSoup for " + s)
+          continue
+
+      for article in soup('article'):
+          citations = article.find_all('h3', {'class': 'lessonCitation'})
+          divs = article.find_all('div')
+          if (len(citations) != len(divs)):
+              print("WARNING: citations ({}) > div's({}) in {}".format(len(citations), len(divs), s))
+              continue
+          for i in range(len(citations)):
+              c = citations[i]
+              d = divs[i]
+
+              citation = c.string.strip()
+              filename = textfilename(citation)
+              if filename in refs:
+                  continue
+              refs[filename] = citation
+
+              with open (desthtml + filename + ".html", "w") as t:
+                  t.write("{}".format(d))
+              with open(desttext + filename + ".txt", "w") as t:
+                  t.write(d.getText().lstrip())
+              with open (destmark + filename + ".md", "w") as t:
+                  lastClass = ""
+                  for e in d.contents:
+                      if e == '\n':
+                          continue
+                      if (type(e) == bs4.element.NavigableString):
+                          if (e.strip() != ''):
+                              print ("TODO: Fix navigable string in {} ({}): {}".format(s, citation, e))
+                          continue
+                      if (type(e) != bs4.element.Tag):
+                          if (type(e) != bs4.element.Comment):
+                              print ("Non-tag in {}: {}:{}".format(s, type(e), e))
+                          continue
+                      line = ""
+                      # TODO: lordSmallCaps tags to LORD or GOD
+                      # TODO: <BR> in the middle of a <p> to \n
+                      if e.has_attr('class'):
+                          newClass = e.attrs['class']
+                          if newClass != lastClass:
+                              if lastClass:
+                                   line = "\n"
+                              lastClass = newClass
+                          if "poetry" in newClass or "psalm" in newClass or "ndent" in newClass:
+                              line = line + "> "
+                      line = line + e.getText() + "\n"
+                      t.write(line)
+
+
+
+              #print(citation)
+              # print(d.getText())
+
+  print("Unique Refs count = " + str(len(refs)))
+
+
+
+#+END_SRC
+
+#+RESULTS:
+: Count of files: 236
+: FAILED to make BeautifulSoup for ../lectionarypage.net/YearC_RCL/Easter/CEasVigil_RCL.html
+: FAILED to make BeautifulSoup for ../lectionarypage.net/YearB_RCL/Easter/BEasVigil_RCL.html
+: FAILED to make BeautifulSoup for ../lectionarypage.net/YearA_RCL/Easter/AEasVigil_RCL.html
+: Unique Refs count = 928
 
 ** Produce Liturgies for 2020 (Yr B, Track 1) in =2020=
 Issues:
@@ -1542,7 +1752,7 @@ Issues:
                       t.write(shortcodeRowClosed(psalmStyleColumn))
                       if (not code in noSecondReading):
                           t.write(shortcodeClosed('he/lesson "secondReading"'))
-                      if (code != "goodfriday"):
+                      if (code != "goodfriday" and code != "palmsunday"):
                           t.write(shortcodeClosed('he/gospel'))
                   elif ("he/eucharisticprayer/" in row[i]):
                       t.write(shortcodeRowClosed(i))
