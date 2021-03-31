@@ -1445,12 +1445,14 @@ Source = [[http://bible.oremus.org/api.html][oremus api]]
 ** Get texts from lectionarypage.net
 Mirrored lectionarypage.net (4.0Mb) with = wget -mkp -l2 -N --wait=2 --include-directories=YearA_RCL/*,YearB_RCL/*,YearC_RCL/*,YearABC_RCL/*,YearABC/* http://lectionarypage.net/CalndrsIndexes/TxtindexABCH_RCL.html=, canceling when it started grabbing docx files.
 
-Establish whether there are collisions to worry about in the processed textfilenames
-Count duplicate references (for curiosity's sake)
-Investigate references with mis-matched div's; repair
+DONE: Establish whether there are collisions to worry about in the processed textfilenames: all good
+DONE: Count duplicate references (for curiosity's sake)
+DONE: Investigate references with mis-matched div's; repair
+DONE: Why do the Easter Vigil pages not even parse into BeautifulSoup? bad utf char's; ignore
 #+BEGIN_SRC python :python python3 :results output
   import os, urllib.request, urllib.parse, re, shutil, time, subprocess
   from bs4 import BeautifulSoup
+  from bs4.diagnose import diagnose
   import bs4
 
   def textfilename(ref):
@@ -1461,8 +1463,7 @@ Investigate references with mis-matched div's; repair
   collisions = []
   dupes = 0
 
-  tags = []
-  classes = []
+  tags = { 'br': {'none':0} }
 
   srcfiles = subprocess.check_output(["find ../lectionarypage.net -name *.html"], shell=True, text=True).split("\n")
   print("Count of files: " + str(len(srcfiles)))
@@ -1475,7 +1476,7 @@ Investigate references with mis-matched div's; repair
 
       soup = False
       try:
-          soup = BeautifulSoup(open(s), 'html.parser')
+          soup = BeautifulSoup(open(s, errors='ignore'), 'html.parser')
       except Exception:
           print ("FAILED to make BeautifulSoup for " + s)
           continue
@@ -1513,41 +1514,44 @@ Investigate references with mis-matched div's; repair
               refs[filename] = citation
               #print(citation)
               # print(d.getText())
-              for t in d.contents:
+              for t in d.descendants:
                   if (t == '\n'):
                       continue
                   if (type(t) != bs4.element.Tag):
                       continue
-                  if (not t.name in tags):
-                       tags.append(t.name)
+                  if (t.name == 'br'):
+                      tags['br']['none'] += 1
+                  if (t.name not in tags):
+                       tags[t.name] = {}
                   if (t.has_attr('class')):
-                      if (not t.attrs['class'] in classes):
-                          classes.append(t.attrs['class'])
-
+                      if len(t.attrs['class']) != 1:
+                          print("WARNING: " + s + " " + citation + " " + c.name + " doesn't have a single class")
+                      c = t.attrs['class'][0]
+                      if (c not in tags[t.name]):
+                          tags[t.name][c] = 1
+                      else:
+                           tags[t.name][c] += 1
+                      if t.name == 'span' and c in ['lessonText', 'poetryText']:
+                           print("ODD: " + s + " " + citation + ": span=" + c)
 
   print("Unique Refs count = " + str(len(refs)))
   print("Duplicates = {}".format(dupes))
   print("Tags: {}".format(tags))
-  print("Classes: {}".format(classes))
 
 #+END_SRC
 
 #+RESULTS:
 #+begin_example
 Count of files: 236
-FAILED to make BeautifulSoup for ../lectionarypage.net/YearC_RCL/Easter/CEasVigil_RCL.html
 
 COLLISION: habakkuk114214 Habakkuk 1:1-4, 2:1-4 Habakkuk 1:1-4; 2:1-4
 
-FAILED to make BeautifulSoup for ../lectionarypage.net/YearB_RCL/Easter/BEasVigil_RCL.html
-FAILED to make BeautifulSoup for ../lectionarypage.net/YearA_RCL/Easter/AEasVigil_RCL.html
 
 COLLISION: psalm72171014 Psalm 72:1-7,10-14 Psalm 72:1-7, 10-14
 
 Unique Refs count = 928
 Duplicates = 235
-Tags: ['p', 'br', 'blockquote', 'span']
-Classes: [['poetryText'], ['psalmText'], ['lessonText'], ['poetryIndent'], ['”lessonText”'], ['lessonIndent'], ['“lessonText“'], ['initCap'], ['lordSmallCaps'], ['collectText']]
+Tags: {'br': {'none': 4590}, 'p': {'poetryText': 1334, 'psalmText': 2122, 'lessonText': 1461, 'poetryIndent': 283, 'lessonIndent': 16}, 'span': {'initCap': 918, 'lordSmallCaps': 1707}}
 #+end_example
 
 
@@ -1564,6 +1568,7 @@ TODO: Psalms: format for responsive reading
       return result.casefold()
 
   refs = {}
+  tagsInDivs = {}
 
   srcfiles = subprocess.check_output(["find ../lectionarypage.net -name *.html"], shell=True, text=True).split("\n")
   print("Count of files: " + str(len(srcfiles)))
@@ -1621,16 +1626,40 @@ TODO: Psalms: format for responsive reading
                           if (type(e) != bs4.element.Comment):
                               print ("Non-tag in {}: {}:{}".format(s, type(e), e))
                           continue
+                  for e in d.descendants:
+                      if type(e) == bs4.element.NavigableString or type(e) == bs4.element.Comment:
+                          continue
+                      if e.name in tagsInDivs:
+                          tagsInDivs[e.name] = tagsInDivs[e.name] + 1
+                      else:
+                          tagsInDivs[e.name] = 1
+                      if (e.name == 'i'):
+                          print("{}: {}".format(s,e))
+                      if (e.name == 'blockquote'):
+                          print("{}: {}".format(s,e))
+                      if e.has_attr('class'):
+                          cl = e.attrs['class'][0]
+                          if cl in tagsInDivs:
+                              tagsInDivs[cl] = tagsInDivs[cl] + 1
+                          else:
+                              tagsInDivs[cl] = 1
+                          if cl != re.sub(r'[^a-zA-z]', '', cl):
+                              print("TODO: bad class for tag {} in {}".format(e, s))
+                          if cl == 'collectText':
+                              print("TODO: bad class for tag {} in {}".format(e, s))
+
                       line = ""
+                      # TODO: Discard initCap
+                      # TODO: Preserve <br> within paragraph
                       # TODO: lordSmallCaps tags to LORD or GOD
-                      # TODO: <BR> in the middle of a <p> to \n
+                      # TODO: Indent for poetryText, psalmText, poetryIndent, lessonIndent; not for lessonText
                       if e.has_attr('class'):
                           newClass = e.attrs['class']
                           if newClass != lastClass:
                               if lastClass:
                                    line = "\n"
                               lastClass = newClass
-                          if "poetry" in newClass or "psalm" in newClass or "ndent" in newClass:
+                          if "poetry" in newClass or "psalm" in newClass or "Indent" in newClass:
                               line = line + "> "
                       line = line + e.getText() + "\n"
                       t.write(line)
@@ -1641,7 +1670,7 @@ TODO: Psalms: format for responsive reading
               # print(d.getText())
 
   print("Unique Refs count = " + str(len(refs)))
-
+  print("Tags in div's: {}".format(tagsInDivs))
 
 
 #+END_SRC
@@ -1652,6 +1681,7 @@ TODO: Psalms: format for responsive reading
 : FAILED to make BeautifulSoup for ../lectionarypage.net/YearB_RCL/Easter/BEasVigil_RCL.html
 : FAILED to make BeautifulSoup for ../lectionarypage.net/YearA_RCL/Easter/AEasVigil_RCL.html
 : Unique Refs count = 928
+: Tags in div's: {'p': 5307, 'poetryText': 1337, 'span': 2649, 'initCap': 918, 'br': 4590, 'lordSmallCaps': 1707, 'psalmText': 2122, 'lessonText': 1478, 'poetryIndent': 283, 'lessonIndent': 16}
 
 ** Produce Liturgies for 2020 (Yr B, Track 1) in =2020=
 Issues:
