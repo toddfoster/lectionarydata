@@ -1555,9 +1555,15 @@ Tags: {'br': {'none': 4590}, 'p': {'poetryText': 1334, 'psalmText': 2122, 'lesso
 #+end_example
 
 
-Output html for use in sharedprayers
-TODO: Psalms: retain latin title
-TODO: Psalms: format for responsive reading
+Output html
+Output plain text
+Output markdown
+For Plain text, markdown:
+DONE: Psalms: retain latin title
+DONE: convert lordSmallCaps spans to UPPERCASE
+DONE: indent for ['poetryIndent', 'lessonIndent', 'poetryText', 'psalmText']
+DONE: Examine keeping br's as \n
+DONE: Psalms: format for responsive reading (markdown only)
 #+BEGIN_SRC python :python python3 :results output
   import os, urllib.request, urllib.parse, re, shutil, time, subprocess
   from bs4 import BeautifulSoup
@@ -1569,6 +1575,8 @@ TODO: Psalms: format for responsive reading
 
   refs = {}
   tagsInDivs = {}
+  count = 0
+  indentClasses = ["poetryText", "psalmText", "poetryIndent", "lessonIndent"]
 
   srcfiles = subprocess.check_output(["find ../lectionarypage.net -name *.html"], shell=True, text=True).split("\n")
   print("Count of files: " + str(len(srcfiles)))
@@ -1585,6 +1593,7 @@ TODO: Psalms: format for responsive reading
       if len(s)==0:
         continue
       # print("Processing " + s)
+      count = count + 1
 
       soup = False
       try:
@@ -1595,6 +1604,9 @@ TODO: Psalms: format for responsive reading
 
       for article in soup('article'):
           citations = article.find_all('h3', {'class': 'lessonCitation'})
+          latin = article.find_all(class_='psalmLatin')
+          latinTitle = ""
+          psalmCount = 0
           divs = article.find_all('div')
           if (len(citations) != len(divs)):
               print("WARNING: citations ({}) > div's({}) in {}".format(len(citations), len(divs), s))
@@ -1604,17 +1616,47 @@ TODO: Psalms: format for responsive reading
               d = divs[i]
 
               citation = c.string.strip()
+              if ("Psalm" in citation):
+                  try:
+                      latinTitle = latin[psalmCount].getText()
+                  except Exception:
+                      print ("Failed to de-ref latin title {} in file {}".format(psalmCount, s))
+                      print (latin)
+                      print (d.getText())
+                  psalmCount += 1
+
               filename = textfilename(citation)
               if filename in refs:
                   continue
               refs[filename] = citation
 
               with open (desthtml + filename + ".html", "w") as t:
+                  if latinTitle:
+                      t.write("<p class='psalmLatin'>{}</p>\n".format(latinTitle))
                   t.write("{}".format(d))
+
+              # Fix up reading before exporting to plain text / html
+              # Change small caps to all caps
+              for e in d.find_all('span', {'class': 'lordSmallCaps'}):
+                  e.string = e.getText().upper()
+                  e.unwrap()
+              # Remove initial caps
+              for e in d.find_all('span', {'class': 'initCap'}):
+                  e.unwrap()
+
+
               with open(desttext + filename + ".txt", "w") as t:
+                  if latinTitle:
+                      t.write("{}\n\n".format(latinTitle))
                   t.write(d.getText().lstrip())
+
               with open (destmark + filename + ".md", "w") as t:
+                  if latinTitle:
+                      t.write("_{}_\n\n".format(latinTitle))
                   lastClass = ""
+                  psalmVerseOdd = True
+
+                  # Error checking: these were eliminated
                   for e in d.contents:
                       if e == '\n':
                           continue
@@ -1627,6 +1669,7 @@ TODO: Psalms: format for responsive reading
                               print ("Non-tag in {}: {}:{}".format(s, type(e), e))
                           continue
                   for e in d.descendants:
+                      # More error checking: these were eliminated
                       if type(e) == bs4.element.NavigableString or type(e) == bs4.element.Comment:
                           continue
                       if e.name in tagsInDivs:
@@ -1648,26 +1691,30 @@ TODO: Psalms: format for responsive reading
                           if cl == 'collectText':
                               print("TODO: bad class for tag {} in {}".format(e, s))
 
+                      if (e.name == "br"):
+                          continue
+
                       line = ""
-                      # TODO: Discard initCap
-                      # TODO: Preserve <br> within paragraph
-                      # TODO: lordSmallCaps tags to LORD or GOD
-                      # TODO: Indent for poetryText, psalmText, poetryIndent, lessonIndent; not for lessonText
-                      if e.has_attr('class'):
-                          newClass = e.attrs['class']
+                      if ("Psalm" in citation):
+                          text = e.getText().replace(" *", " \*  ")
+                          if psalmVerseOdd:
+                              line = line + "\n> " + text
+                          else:
+                              line = line + "\n> **" + text + "**\n"
+                          psalmVerseOdd = not psalmVerseOdd
+                      else:
+                          if e.has_attr('class'):
+                              newClass = e.attrs['class'][0]
                           if newClass != lastClass:
                               if lastClass:
                                    line = "\n"
                               lastClass = newClass
-                          if "poetry" in newClass or "psalm" in newClass or "Indent" in newClass:
+                          if newClass in indentClasses:
                               line = line + "> "
-                      line = line + e.getText() + "\n"
+                          line = line + e.getText() + "\n"
                       t.write(line)
-
-
-
-              #print(citation)
-              # print(d.getText())
+      #if count>0:
+          #exit()
 
   print("Unique Refs count = " + str(len(refs)))
   print("Tags in div's: {}".format(tagsInDivs))
@@ -1681,7 +1728,9 @@ TODO: Psalms: format for responsive reading
 : FAILED to make BeautifulSoup for ../lectionarypage.net/YearB_RCL/Easter/BEasVigil_RCL.html
 : FAILED to make BeautifulSoup for ../lectionarypage.net/YearA_RCL/Easter/AEasVigil_RCL.html
 : Unique Refs count = 928
-: Tags in div's: {'p': 5307, 'poetryText': 1337, 'span': 2649, 'initCap': 918, 'br': 4590, 'lordSmallCaps': 1707, 'psalmText': 2122, 'lessonText': 1478, 'poetryIndent': 283, 'lessonIndent': 16}
+: Tags in div's: {'p': 5308, 'poetryText': 1334, 'br': 4590, 'psalmText': 2122, 'lessonText': 1461, 'poetryIndent': 283, 'lessonIndent': 16}
+
+
 
 ** Produce Liturgies for 2020 (Yr B, Track 1) in =2020=
 Issues:
