@@ -1564,6 +1564,9 @@ DONE: convert lordSmallCaps spans to UPPERCASE
 DONE: indent for ['poetryIndent', 'lessonIndent', 'poetryText', 'psalmText']
 DONE: Examine keeping br's as \n
 DONE: Psalms: format for responsive reading (markdown only)
+TODO: Look through .md output for issues
+DONE: If whole passage is poetry, only use single ">"?
+TODO: retain line breaks (<br/>)
 #+BEGIN_SRC python :python python3 :results output
   import os, urllib.request, urllib.parse, re, shutil, time, subprocess
   from bs4 import BeautifulSoup
@@ -1602,6 +1605,10 @@ DONE: Psalms: format for responsive reading (markdown only)
           print ("FAILED to make BeautifulSoup for " + s)
           continue
 
+      # retain linebreaks
+      #for br in soup.find_all("br"):
+          #br.replace_with("BREAK")
+
       for article in soup('article'):
           citations = article.find_all('h3', {'class': 'lessonCitation'})
           latin = article.find_all(class_='psalmLatin')
@@ -1630,12 +1637,15 @@ DONE: Psalms: format for responsive reading (markdown only)
                   continue
               refs[filename] = citation
 
+              if filename == "psalm98":
+                  print ("Found psalm98 in " + s)
+
               with open (desthtml + filename + ".html", "w") as t:
                   if latinTitle:
                       t.write("<p class='psalmLatin'>{}</p>\n".format(latinTitle))
                   t.write("{}".format(d))
 
-              # Fix up reading before exporting to plain text / html
+              # Fix up reading before exporting to plain text
               # Change small caps to all caps
               for e in d.find_all('span', {'class': 'lordSmallCaps'}):
                   e.string = e.getText().upper()
@@ -1692,6 +1702,7 @@ DONE: Psalms: format for responsive reading (markdown only)
                               print("TODO: bad class for tag {} in {}".format(e, s))
 
                       if (e.name == "br"):
+                          t.write('\n')
                           continue
 
                       line = ""
@@ -1700,18 +1711,24 @@ DONE: Psalms: format for responsive reading (markdown only)
                           if psalmVerseOdd:
                               line = line + "\n> " + text
                           else:
-                              line = line + "\n> **" + text + "**\n"
+                              line = line + "\n> **" + text.strip() + "**\n"
+                          line = line + "  "
                           psalmVerseOdd = not psalmVerseOdd
+                      elif ("Canticle" in citation):
+                          text = e.getText().strip().replace(" *", " \*").replace("\n", "  \n")
+                          line = "> **" + text.strip() + "**\n"
                       else:
+                          newClass = None
                           if e.has_attr('class'):
                               newClass = e.attrs['class'][0]
-                          if newClass != lastClass:
-                              if lastClass:
-                                   line = "\n"
-                              lastClass = newClass
+                          lineEnd = "\n\n"
                           if newClass in indentClasses:
                               line = line + "> "
-                          line = line + e.getText() + "\n"
+                              lineEnd = "\n"
+                          line = line + e.getText().replace("\n", " ") + lineEnd
+                          line = re.sub(r' +', ' ', line)
+                          if newClass in indentClasses:
+                              line = line + "  "
                       t.write(line)
       #if count>0:
           #exit()
@@ -1723,12 +1740,6 @@ DONE: Psalms: format for responsive reading (markdown only)
 #+END_SRC
 
 #+RESULTS:
-: Count of files: 236
-: FAILED to make BeautifulSoup for ../lectionarypage.net/YearC_RCL/Easter/CEasVigil_RCL.html
-: FAILED to make BeautifulSoup for ../lectionarypage.net/YearB_RCL/Easter/BEasVigil_RCL.html
-: FAILED to make BeautifulSoup for ../lectionarypage.net/YearA_RCL/Easter/AEasVigil_RCL.html
-: Unique Refs count = 928
-: Tags in div's: {'p': 5308, 'poetryText': 1334, 'br': 4590, 'psalmText': 2122, 'lessonText': 1461, 'poetryIndent': 283, 'lessonIndent': 16}
 
 
 
@@ -1846,3 +1857,3274 @@ Issues:
 : Wrote 72 records.
 
 **
+
+* Read lectionary from venite project
+** Test out file format
+#+BEGIN_SRC python :python python3 :results output
+  import json
+
+  def report(title, data):
+         print(title + " (" + str(len(data)) + "): " + ', '.join(map(str, data)))
+
+  def get_elements(data, name):
+       results = []
+       for i in data:
+         if(i[name] not in results):
+           results.append(i[name])
+       return results
+
+  def analyze(filename):
+       print("--------------------")
+       print("analyze: " + filename + "\n")
+
+       with open(filename, "r") as f:
+         data = f.read()
+       rcl = json.loads(data)
+
+       print ("Found " + str(len(rcl)) + " records")
+
+       interesting_fields = ['day', 'when', 'whentype', 'lectionary', 'type']
+       for field in interesting_fields:
+          report(field, get_elements(rcl, field))
+
+  analyze('../venite/commonprayer/src/assets/lectionary/rcl1.json')
+  analyze('../venite/commonprayer/src/assets/lectionary/rcl2.json')
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+--------------------
+analyze: ../venite/commonprayer/src/assets/lectionary/rcl1.json
+
+Found 809 records
+day (107): first-advent, second-advent, third-advent, fourth-advent, christmas, 1st-sunday-after-christmas, holy-name, 2nd-sunday-after-christmas, epiphany, 1st-epiphany, 2nd-epiphany, 3rd-epiphany, 4th-epiphany, 5th-epiphany, 6th-epiphany, 7th-epiphany, 8th-epiphany, last-epiphany, wednesday-last-epiphany, 1st-lent, 2nd-lent, 3rd-lent, 4th-lent, 5th-lent, holy-week, monday-holy-week, tuesday-holy-week, wednesday-holy-week, thursday-holy-week, friday-holy-week, saturday-holy-week, easter, monday-easter, tuesday-easter, wednesday-easter, thursday-easter, friday-easter, saturday-easter, 2nd-easter, 3rd-easter, 4th-easter, 5th-easter, 6th-easter, thursday-6th-easter, 7th-easter, pentecost, trinity-sunday, proper-1, proper-2, proper-3, proper-4, proper-5, proper-6, proper-7, proper-8, proper-9, proper-10, proper-11, proper-12, proper-13, proper-14, proper-15, proper-16, proper-17, proper-18, proper-19, proper-20, proper-21, proper-22, proper-23, proper-24, proper-25, proper-26, proper-27, proper-28, proper-29, confession-of-st-peter, conversion-of-st-paul, the-presentation, st-matthias, st-joseph, annunciation, st-mark, ss-philip-and-james, the-visitation, st-barnabas, nativity-of-st-john-the-baptist, ss-peter-and-paul, independence-day, st-mary-magdalene, st-james, the-transfiguration, st-mary-the-virgin, st-bartholomew, holy-cross, st-matthew, st-michael, st-luke, st-james-of-jerusalem, ss-simon-and-jude, all-saints-day, st-andrew, st-thomas, st-stephen, st-john, holy-innocents, thanksgiving-day
+when (3): A, B, C
+whentype (1): year
+lectionary (1): rclsundayTrack1
+type (5): second_reading, gospel, palms_gospel, first_reading, morning_psalms
+--------------------
+analyze: ../venite/commonprayer/src/assets/lectionary/rcl2.json
+
+Found 1361 records
+day (107): first-advent, second-advent, third-advent, fourth-advent, christmas, 1st-sunday-after-christmas, holy-name, 2nd-sunday-after-christmas, epiphany, 1st-epiphany, 2nd-epiphany, 3rd-epiphany, 4th-epiphany, 5th-epiphany, 6th-epiphany, 7th-epiphany, 8th-epiphany, last-epiphany, wednesday-last-epiphany, 1st-lent, 2nd-lent, 3rd-lent, 4th-lent, 5th-lent, holy-week, monday-holy-week, tuesday-holy-week, wednesday-holy-week, thursday-holy-week, friday-holy-week, saturday-holy-week, easter, monday-easter, tuesday-easter, wednesday-easter, thursday-easter, friday-easter, saturday-easter, 2nd-easter, 3rd-easter, 4th-easter, 5th-easter, 6th-easter, thursday-6th-easter, 7th-easter, pentecost, trinity-sunday, proper-1, proper-2, proper-3, proper-4, proper-5, proper-6, proper-7, proper-8, proper-9, proper-10, proper-11, proper-12, proper-13, proper-14, proper-15, proper-16, proper-17, proper-18, proper-19, proper-20, proper-21, proper-22, proper-23, proper-24, proper-25, proper-26, proper-27, proper-28, proper-29, confession-of-st-peter, conversion-of-st-paul, the-presentation, st-matthias, st-joseph, annunciation, st-mark, ss-philip-and-james, the-visitation, st-barnabas, nativity-of-st-john-the-baptist, ss-peter-and-paul, independence-day, st-mary-magdalene, st-james, the-transfiguration, st-mary-the-virgin, st-bartholomew, holy-cross, st-matthew, st-michael, st-luke, st-james-of-jerusalem, ss-simon-and-jude, all-saints-day, st-andrew, st-thomas, st-stephen, st-john, holy-innocents, thanksgiving-day
+when (3): A, B, C
+whentype (1): year
+lectionary (1): rclsunday
+type (5): first_reading, morning_psalms, second_reading, gospel, palms_gospel
+#+end_example
+** Compare citations in lectionaries
+#+BEGIN_SRC python :python python3 :results output
+  import json
+
+  def report(title, data):
+    print(title + " (" + str(len(data)) + "): " + ', '.join(map(str, data)))
+
+  def analyze(filename):
+    print("--------------------")
+    print("analyze: " + filename + "\n")
+
+    with open(filename, "r") as f:
+      data = f.read()
+    rcl = json.loads(data)
+
+    print ("Found " + str(len(rcl)) + " records")
+
+    days = []
+    whens = []
+    whentypes = []
+    lectionaries = []
+    types = []
+    for i in rcl:
+      if i['day'] not in days:
+          books=[]
+          for i in rcl:
+              book = i['citation']
+              space = book.find(" ", 2)
+              if (space > 2):
+                  book = book[0:space]
+              if book not in books:
+                  books.append(book)
+    return books
+
+  rcl1_books = getbooks('../venite/commonprayer/src/assets/lectionary/rcl1.json')
+  rcl2_books = getbooks('../venite/commonprayer/src/assets/lectionary/rcl2.json')
+  rcl1_unique_books = list(set(rcl1_books) - set(rcl2_books))
+  rcl2_unique_books = list(set(rcl2_books) - set(rcl1_books))
+
+  report("rcl1 books", rcl1_books)
+  report("rcl2 books", rcl2_books)
+  report("rcl1 unique books", rcl1_unique_books)
+  report("rcl2 unique books", rcl2_unique_books)
+
+
+#+END_SRC
+
+#+RESULTS:
+
+** Proper 19-A
+#+BEGIN_SRC python :python python3 :results output
+import json
+
+def loadlectionary(filename):
+  with open(filename, "r") as f:
+    data = f.read()
+  return json.loads(data)
+
+def analyze(data, when, day):
+  for i in data:
+    if(i['day']==day and i['when']==when):
+      print(i)
+
+rcl1 = loadlectionary('lectionary/rcl1.json')
+rcl2 = loadlectionary('lectionary/rcl2.json')
+
+print("rcl1 for proper 19-A: ")
+analyze(rcl1, "A", "proper-19")
+print()
+print("rc2 for proper 19-A: ")
+analyze(rcl2, "A", "proper-19")
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+rcl1 for proper 19-A:
+{'whentype': 'year', 'when': 'A', 'day': 'proper-19', 'lectionary': 'rclsundayTrack1', 'type': 'first_reading', 'citation': 'Exodus 14:19-31'}
+{'whentype': 'year', 'when': 'A', 'day': 'proper-19', 'lectionary': 'rclsundayTrack1', 'type': 'morning_psalms', 'citation': 'Psalm 114'}
+{'whentype': 'year', 'when': 'A', 'day': 'proper-19', 'lectionary': 'rclsundayTrack1', 'type': 'second_reading', 'citation': 'Romans 14:1-12'}
+{'whentype': 'year', 'when': 'A', 'day': 'proper-19', 'lectionary': 'rclsundayTrack1', 'type': 'gospel', 'citation': 'Matthew 18:21-35'}
+{'whentype': 'year', 'when': 'A', 'day': 'proper-19', 'lectionary': 'rclsundayTrack1', 'type': 'morning_psalms', 'citation': 'Exodus 15:1b-11, 20-21'}
+
+rc2 for proper 19-A:
+{'whentype': 'year', 'when': 'A', 'day': 'proper-19', 'lectionary': 'rclsunday', 'type': 'first_reading', 'citation': 'Genesis 50:15-21'}
+{'whentype': 'year', 'when': 'A', 'day': 'proper-19', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'Psalm 103:(1-7), 8-13'}
+{'whentype': 'year', 'when': 'A', 'day': 'proper-19', 'lectionary': 'rclsunday', 'type': 'second_reading', 'citation': 'Romans 14:1-12'}
+{'whentype': 'year', 'when': 'A', 'day': 'proper-19', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Matthew 18:21-35'}
+#+end_example
+
+** Proper 1-A is missing a first reading and a psalm for  track 1
+#+BEGIN_SRC python :python python3 :results output
+import json
+
+def loadlectionary(filename):
+  with open(filename, "r") as f:
+    data = f.read()
+  return json.loads(data)
+
+def analyze(data, when, day):
+  for i in data:
+    if(i['day']==day and i['when']==when):
+      print(i)
+
+rcl1 = loadlectionary('lectionary/rcl1.json')
+rcl2 = loadlectionary('lectionary/rcl2.json')
+
+print("rcl1 for proper 1-A: ")
+analyze(rcl1, "A", "proper-1")
+print()
+print("rc2 for proper 1-A: ")
+analyze(rcl2, "A", "proper-1")
+#+END_SRC
+
+#+RESULTS:
+: rcl1 for proper 1-A:
+: {'whentype': 'year', 'when': 'A', 'day': 'proper-1', 'lectionary': 'rclsundayTrack1', 'type': 'second_reading', 'citation': '1 Corinthians 3:1-9'}
+: {'whentype': 'year', 'when': 'A', 'day': 'proper-1', 'lectionary': 'rclsundayTrack1', 'type': 'gospel', 'citation': 'Matthew 5:21-37'}
+:
+: rc2 for proper 1-A:
+: {'whentype': 'year', 'when': 'A', 'day': 'proper-1', 'lectionary': 'rclsunday', 'type': 'first_reading', 'citation': 'Ecclesiasticus 15:15-20'}
+: {'whentype': 'year', 'when': 'A', 'day': 'proper-1', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'Psalm 119:1-8'}
+: {'whentype': 'year', 'when': 'A', 'day': 'proper-1', 'lectionary': 'rclsunday', 'type': 'second_reading', 'citation': '1 Corinthians 3:1-9'}
+: {'whentype': 'year', 'when': 'A', 'day': 'proper-1', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Matthew 5:21-37'}
+** What's up with holy week?
+#+BEGIN_SRC python :python python3 :results output
+  import json
+
+  def loadlectionary(filename):
+    with open(filename, "r") as f:
+      data = f.read()
+    return json.loads(data)
+
+  def days_with_palms_gospel(data):
+    found = []
+    for i in data:
+      if(i['type']=='palms_gospel'):
+        found.append(i['day'])
+    return set(found)
+
+  def show(data, day):
+    for i in data:
+      if(i['day']==day):
+        print(i)
+
+
+  rcl1 = loadlectionary('lectionary/rcl1.json')
+  rcl2 = loadlectionary('lectionary/rcl2.json')
+
+  print ("palms_gospel in rcl1:")
+  pg1 = days_with_palms_gospel(rcl1)
+  print(pg1)
+
+  print ("palms_gospel in rcl2:")
+  pg2 = days_with_palms_gospel(rcl2)
+  print(pg2)
+
+  print("\n\n\n")
+  show(rcl1, 'holy-week')
+  print("\n\n\n")
+  show(rcl2, 'holy-week')
+
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+palms_gospel in rcl1:
+{'holy-week'}
+palms_gospel in rcl2:
+{'holy-week'}
+
+
+
+
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'gospel', 'citation': 'Matthew 27:11-54'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'palms_gospel', 'citation': 'Matthew 21:1-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'gospel', 'citation': 'Mark 15:1-47'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'palms_gospel', 'citation': 'Mark 11:1-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'palms_gospel', 'citation': 'John 12:12-16'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'gospel', 'citation': 'Luke 22:14-23:56'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'palms_gospel', 'citation': 'Luke 19:28-40'}
+
+
+
+
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'first_reading', 'citation': 'Isaiah 50:4-9'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'Psalm 31:9-16'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Matthew 27:11-54'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'palms_gospel', 'citation': 'Matthew 21:1-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'first_reading', 'citation': 'Isaiah 50:4-9'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'Psalm 31:9-16'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Mark 15:1-47'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'palms_gospel', 'citation': 'Mark 11:1-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'palms_gospel', 'citation': 'John 12:12-16'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'first_reading', 'citation': 'Isaiah 50:4-9'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'Psalm 31:9-16'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Luke 22:14-23:56'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'palms_gospel', 'citation': 'Luke 19:28-40'}
+#+end_exampl
+e*** What's up with holy week?
+#+BEGIN_SRC python :python python3 :results output
+  import json
+
+  def loadlectionary(filename):
+    with open(filename, "r") as f:
+      data = f.read()
+    return json.loads(data)
+
+  def days_with_palms_gospel(data):
+    found = []
+    for i in data:
+      if(i['type']=='palms_gospel'):
+        found.append(i['day'])
+    return set(found)
+
+  def show(data, day):
+    for i in data:
+      if(i['day']==day):
+        print(i)
+
+
+  rcl1 = loadlectionary('lectionary/rcl1.json')
+  rcl2 = loadlectionary('lectionary/rcl2.json')
+
+  print ("palms_gospel in rcl1:")
+  pg1 = days_with_palms_gospel(rcl1)
+  print(pg1)
+
+  print ("palms_gospel in rcl2:")
+  pg2 = days_with_palms_gospel(rcl2)
+  print(pg2)
+
+  print("\n\n\n")
+  show(rcl1, 'holy-week')
+  print("\n\n\n")
+  show(rcl2, 'holy-week')
+
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+palms_gospel in rcl1:
+{'holy-week'}
+palms_gospel in rcl2:
+{'holy-week'}
+
+
+
+
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'gospel', 'citation': 'Matthew 27:11-54'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'palms_gospel', 'citation': 'Matthew 21:1-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'gospel', 'citation': 'Mark 15:1-47'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'palms_gospel', 'citation': 'Mark 11:1-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'palms_gospel', 'citation': 'John 12:12-16'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'gospel', 'citation': 'Luke 22:14-23:56'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'palms_gospel', 'citation': 'Luke 19:28-40'}
+
+
+
+
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'first_reading', 'citation': 'Isaiah 50:4-9'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'Psalm 31:9-16'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Matthew 27:11-54'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'palms_gospel', 'citation': 'Matthew 21:1-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'first_reading', 'citation': 'Isaiah 50:4-9'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'Psalm 31:9-16'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Mark 15:1-47'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'palms_gospel', 'citation': 'Mark 11:1-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'palms_gospel', 'citation': 'John 12:12-16'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'first_reading', 'citation': 'Isaiah 50:4-9'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'Psalm 31:9-16'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Luke 22:14-23:56'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'palms_gospel', 'citation': 'Luke 19:28-40'}
+#+end_exampl
+
+** How many non whentypes
+#+BEGIN_SRC python :python python3 :results output
+  import json
+
+  def loadlectionary(filename):
+    with open(filename, "r") as f:
+      data = f.read()
+    return json.loads(data)
+
+  def days_with_palms_gospel(data):
+    found = []
+    for i in data:
+      if(i['type']=='palms_gospel'):
+        found.append(i['day'])
+    return set(found)
+
+  def show(data, day):
+    for i in data:
+      if(i['day']==day):
+        print(i)
+
+
+  rcl1 = loadlectionary('lectionary/rcl1.json')
+  rcl2 = loadlectionary('lectionary/rcl2.json')
+
+  print ("palms_gospel in rcl1:")
+  pg1 = days_with_palms_gospel(rcl1)
+  print(pg1)
+
+  print ("palms_gospel in rcl2:")
+  pg2 = days_with_palms_gospel(rcl2)
+  print(pg2)
+
+  print("\n\n\n")
+  show(rcl1, 'holy-week')
+  print("\n\n\n")
+  show(rcl2, 'holy-week')
+
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+palms_gospel in rcl1:
+{'holy-week'}
+palms_gospel in rcl2:
+{'holy-week'}
+
+
+
+
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'gospel', 'citation': 'Matthew 27:11-54'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'palms_gospel', 'citation': 'Matthew 21:1-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'gospel', 'citation': 'Mark 15:1-47'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'palms_gospel', 'citation': 'Mark 11:1-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'palms_gospel', 'citation': 'John 12:12-16'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'gospel', 'citation': 'Luke 22:14-23:56'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'palms_gospel', 'citation': 'Luke 19:28-40'}
+
+
+
+
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'first_reading', 'citation': 'Isaiah 50:4-9'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'Psalm 31:9-16'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Matthew 27:11-54'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'palms_gospel', 'citation': 'Matthew 21:1-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'first_reading', 'citation': 'Isaiah 50:4-9'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'Psalm 31:9-16'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Mark 15:1-47'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'palms_gospel', 'citation': 'Mark 11:1-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'palms_gospel', 'citation': 'John 12:12-16'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'first_reading', 'citation': 'Isaiah 50:4-9'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'Psalm 31:9-16'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Luke 22:14-23:56'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'palms_gospel', 'citation': 'Luke 19:28-40'}
+#+end_exampl
+e*** What's up with holy week?
+#+BEGIN_SRC python :python python3 :results output
+  import json
+
+  def loadlectionary(filename):
+    with open(filename, "r") as f:
+      data = f.read()
+    return json.loads(data)
+
+  def days_with_palms_gospel(data):
+    found = []
+    for i in data:
+      if(i['type']=='palms_gospel'):
+        found.append(i['day'])
+    return set(found)
+
+  def show(data, day):
+    for i in data:
+      if(i['day']==day):
+        print(i)
+
+
+  rcl1 = loadlectionary('lectionary/rcl1.json')
+  rcl2 = loadlectionary('lectionary/rcl2.json')
+
+  print ("palms_gospel in rcl1:")
+  pg1 = days_with_palms_gospel(rcl1)
+  print(pg1)
+
+  print ("palms_gospel in rcl2:")
+  pg2 = days_with_palms_gospel(rcl2)
+  print(pg2)
+
+  print("\n\n\n")
+  show(rcl1, 'holy-week')
+  print("\n\n\n")
+  show(rcl2, 'holy-week')
+
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+palms_gospel in rcl1:
+{'holy-week'}
+palms_gospel in rcl2:
+{'holy-week'}
+
+
+
+
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'gospel', 'citation': 'Matthew 27:11-54'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'palms_gospel', 'citation': 'Matthew 21:1-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'gospel', 'citation': 'Mark 15:1-47'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'palms_gospel', 'citation': 'Mark 11:1-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'palms_gospel', 'citation': 'John 12:12-16'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'gospel', 'citation': 'Luke 22:14-23:56'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'palms_gospel', 'citation': 'Luke 19:28-40'}
+
+
+
+
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'first_reading', 'citation': 'Isaiah 50:4-9'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'Psalm 31:9-16'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Matthew 27:11-54'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'palms_gospel', 'citation': 'Matthew 21:1-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'first_reading', 'citation': 'Isaiah 50:4-9'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'Psalm 31:9-16'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Mark 15:1-47'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'palms_gospel', 'citation': 'Mark 11:1-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'palms_gospel', 'citation': 'John 12:12-16'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'first_reading', 'citation': 'Isaiah 50:4-9'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'Psalm 31:9-16'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Luke 22:14-23:56'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'palms_gospel', 'citation': 'Luke 19:28-40'}
+#+end_example
+** Let's do some sanity checks
+#+BEGIN_SRC python :python python3 :results output
+  import json
+
+  def loadlectionary(filename):
+    with open(filename, "r") as f:
+      data = f.read()
+    return json.loads(data)
+
+  def get_days_set(data):
+    days=[]
+    for i in data:
+      if(i['day'] not in days):
+        days.append(i['day'])
+    return days
+
+  def get_day(data, day):
+    results=[]
+    for i in data:
+      if(i['day']==day):
+        results.append(i)
+    return results
+
+  def get_year(data, year):
+    results=[]
+    for i in data:
+      if(i['when']==year):
+        results.append(i)
+    return results
+
+  def check_readings(data, day):
+    normal = ['first_reading', 'second_reading', 'gospel', 'morning_psalms']
+    all_years = ['A', 'B', 'C']
+    records = get_day(data, day)
+    for year in all_years:
+      thisyear = get_year(records, year)
+      types = []
+      missing = []
+      for i in thisyear:
+         types.append(i['type'])
+      for t in normal:
+         if (t in types):
+           types.remove(t)
+         else:
+           missing.append(t)
+      if len(types) + len(missing) > 0:
+        print("Check " + day + "-" + year)
+        if(len(types)>0):
+          print("    extra  =[" + ", ".join(map(str, types)) + "]")
+        if(len(missing)>0):
+          print("    missing=[" + ", ".join(map(str, missing)) + "]")
+
+
+  rcl1 = loadlectionary('lectionary/rcl1.json')
+  rcl2 = loadlectionary('lectionary/rcl2.json')
+
+  days = get_days_set(rcl1)
+  days2 = get_days_set(rcl2)
+  if (days != days2):
+    print("*** Warning: different days in rcl1/2!")
+
+  print ("rcl1:")
+  for d in days:
+    check_readings(rcl1, d)
+
+  print ("\n\nrcl2:")
+  for d in days:
+    check_readings(rcl2, d)
+
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+rcl1:
+Check first-advent-A
+    missing=[first_reading, morning_psalms]
+Check first-advent-B
+    missing=[first_reading, morning_psalms]
+Check first-advent-C
+    missing=[first_reading, morning_psalms]
+Check second-advent-A
+    missing=[first_reading, morning_psalms]
+Check second-advent-B
+    missing=[first_reading, morning_psalms]
+Check second-advent-C
+    missing=[first_reading, morning_psalms]
+Check third-advent-A
+    missing=[first_reading, morning_psalms]
+Check third-advent-B
+    missing=[first_reading, morning_psalms]
+Check third-advent-C
+    missing=[first_reading, morning_psalms]
+Check fourth-advent-A
+    missing=[first_reading, morning_psalms]
+Check fourth-advent-B
+    missing=[first_reading, morning_psalms]
+Check fourth-advent-C
+    missing=[first_reading, morning_psalms]
+Check christmas-A
+    missing=[first_reading, morning_psalms]
+Check christmas-B
+    missing=[first_reading, morning_psalms]
+Check christmas-C
+    missing=[first_reading, morning_psalms]
+Check 1st-sunday-after-christmas-A
+    missing=[first_reading, morning_psalms]
+Check 1st-sunday-after-christmas-B
+    missing=[first_reading, morning_psalms]
+Check 1st-sunday-after-christmas-C
+    missing=[first_reading, morning_psalms]
+Check holy-name-A
+    missing=[first_reading, morning_psalms]
+Check holy-name-B
+    missing=[first_reading, morning_psalms]
+Check holy-name-C
+    missing=[first_reading, morning_psalms]
+Check 2nd-sunday-after-christmas-A
+    missing=[first_reading, morning_psalms]
+Check 2nd-sunday-after-christmas-B
+    missing=[first_reading, morning_psalms]
+Check 2nd-sunday-after-christmas-C
+    missing=[first_reading, morning_psalms]
+Check epiphany-A
+    missing=[first_reading, morning_psalms]
+Check epiphany-B
+    missing=[first_reading, morning_psalms]
+Check epiphany-C
+    missing=[first_reading, morning_psalms]
+Check 1st-epiphany-A
+    missing=[first_reading, morning_psalms]
+Check 1st-epiphany-B
+    missing=[first_reading, morning_psalms]
+Check 1st-epiphany-C
+    missing=[first_reading, morning_psalms]
+Check 2nd-epiphany-A
+    missing=[first_reading, morning_psalms]
+Check 2nd-epiphany-B
+    missing=[first_reading, morning_psalms]
+Check 2nd-epiphany-C
+    missing=[first_reading, morning_psalms]
+Check 3rd-epiphany-A
+    missing=[first_reading, morning_psalms]
+Check 3rd-epiphany-B
+    missing=[first_reading, morning_psalms]
+Check 3rd-epiphany-C
+    missing=[first_reading, morning_psalms]
+Check 4th-epiphany-A
+    missing=[first_reading, morning_psalms]
+Check 4th-epiphany-B
+    missing=[first_reading, morning_psalms]
+Check 4th-epiphany-C
+    missing=[first_reading, morning_psalms]
+Check 5th-epiphany-A
+    missing=[first_reading, morning_psalms]
+Check 5th-epiphany-B
+    missing=[first_reading, morning_psalms]
+Check 5th-epiphany-C
+    missing=[first_reading, morning_psalms]
+Check 6th-epiphany-A
+    missing=[first_reading, morning_psalms]
+Check 6th-epiphany-B
+    missing=[first_reading, morning_psalms]
+Check 6th-epiphany-C
+    missing=[first_reading, morning_psalms]
+Check 7th-epiphany-A
+    missing=[first_reading, morning_psalms]
+Check 7th-epiphany-B
+    missing=[first_reading, morning_psalms]
+Check 7th-epiphany-C
+    missing=[first_reading, morning_psalms]
+Check 8th-epiphany-A
+    missing=[first_reading, morning_psalms]
+Check 8th-epiphany-B
+    missing=[first_reading, morning_psalms]
+Check 8th-epiphany-C
+    missing=[first_reading, morning_psalms]
+Check last-epiphany-A
+    missing=[first_reading, morning_psalms]
+Check last-epiphany-B
+    missing=[first_reading, morning_psalms]
+Check last-epiphany-C
+    missing=[first_reading, morning_psalms]
+Check wednesday-last-epiphany-A
+    missing=[first_reading, morning_psalms]
+Check wednesday-last-epiphany-B
+    missing=[first_reading, morning_psalms]
+Check wednesday-last-epiphany-C
+    missing=[first_reading, morning_psalms]
+Check 1st-lent-A
+    missing=[first_reading, morning_psalms]
+Check 1st-lent-B
+    missing=[first_reading, morning_psalms]
+Check 1st-lent-C
+    missing=[first_reading, morning_psalms]
+Check 2nd-lent-A
+    missing=[first_reading, morning_psalms]
+Check 2nd-lent-B
+    missing=[first_reading, morning_psalms]
+Check 2nd-lent-C
+    missing=[first_reading, morning_psalms]
+Check 3rd-lent-A
+    missing=[first_reading, morning_psalms]
+Check 3rd-lent-B
+    missing=[first_reading, morning_psalms]
+Check 3rd-lent-C
+    missing=[first_reading, morning_psalms]
+Check 4th-lent-A
+    missing=[first_reading, morning_psalms]
+Check 4th-lent-B
+    missing=[first_reading, morning_psalms]
+Check 4th-lent-C
+    missing=[first_reading, morning_psalms]
+Check 5th-lent-A
+    missing=[first_reading, morning_psalms]
+Check 5th-lent-B
+    missing=[first_reading, morning_psalms]
+Check 5th-lent-C
+    missing=[first_reading, morning_psalms]
+Check holy-week-A
+    extra  =[palms_gospel]
+    missing=[first_reading, morning_psalms]
+Check holy-week-B
+    extra  =[palms_gospel, palms_gospel]
+    missing=[first_reading, morning_psalms]
+Check holy-week-C
+    extra  =[palms_gospel]
+    missing=[first_reading, morning_psalms]
+Check monday-holy-week-A
+    missing=[first_reading, morning_psalms]
+Check monday-holy-week-B
+    missing=[first_reading, morning_psalms]
+Check monday-holy-week-C
+    missing=[first_reading, morning_psalms]
+Check tuesday-holy-week-A
+    missing=[first_reading, morning_psalms]
+Check tuesday-holy-week-B
+    missing=[first_reading, morning_psalms]
+Check tuesday-holy-week-C
+    missing=[first_reading, morning_psalms]
+Check wednesday-holy-week-A
+    missing=[first_reading, morning_psalms]
+Check wednesday-holy-week-B
+    missing=[first_reading, morning_psalms]
+Check wednesday-holy-week-C
+    missing=[first_reading, morning_psalms]
+Check thursday-holy-week-A
+    missing=[first_reading, morning_psalms]
+Check thursday-holy-week-B
+    missing=[first_reading, morning_psalms]
+Check thursday-holy-week-C
+    missing=[first_reading, morning_psalms]
+Check friday-holy-week-A
+    missing=[first_reading, morning_psalms]
+Check friday-holy-week-B
+    missing=[first_reading, morning_psalms]
+Check friday-holy-week-C
+    missing=[first_reading, morning_psalms]
+Check saturday-holy-week-A
+    missing=[first_reading, morning_psalms]
+Check saturday-holy-week-B
+    missing=[first_reading, morning_psalms]
+Check saturday-holy-week-C
+    missing=[first_reading, morning_psalms]
+Check easter-A
+    missing=[first_reading, morning_psalms]
+Check easter-B
+    extra  =[second_reading, gospel]
+    missing=[first_reading, morning_psalms]
+Check easter-C
+    missing=[first_reading, morning_psalms]
+Check monday-easter-A
+    missing=[first_reading, morning_psalms]
+Check monday-easter-B
+    missing=[first_reading, morning_psalms]
+Check monday-easter-C
+    missing=[first_reading, morning_psalms]
+Check tuesday-easter-A
+    missing=[first_reading, morning_psalms]
+Check tuesday-easter-B
+    missing=[first_reading, morning_psalms]
+Check tuesday-easter-C
+    missing=[first_reading, morning_psalms]
+Check wednesday-easter-A
+    missing=[first_reading, morning_psalms]
+Check wednesday-easter-B
+    missing=[first_reading, morning_psalms]
+Check wednesday-easter-C
+    missing=[first_reading, morning_psalms]
+Check thursday-easter-A
+    missing=[first_reading, morning_psalms]
+Check thursday-easter-B
+    missing=[first_reading, morning_psalms]
+Check thursday-easter-C
+    missing=[first_reading, morning_psalms]
+Check friday-easter-A
+    missing=[first_reading, morning_psalms]
+Check friday-easter-B
+    missing=[first_reading, morning_psalms]
+Check friday-easter-C
+    missing=[first_reading, morning_psalms]
+Check saturday-easter-A
+    missing=[first_reading, morning_psalms]
+Check saturday-easter-B
+    missing=[first_reading, morning_psalms]
+Check saturday-easter-C
+    missing=[first_reading, morning_psalms]
+Check 2nd-easter-A
+    missing=[first_reading, morning_psalms]
+Check 2nd-easter-B
+    missing=[first_reading, morning_psalms]
+Check 2nd-easter-C
+    missing=[first_reading, morning_psalms]
+Check 3rd-easter-A
+    missing=[first_reading, morning_psalms]
+Check 3rd-easter-B
+    missing=[first_reading, morning_psalms]
+Check 3rd-easter-C
+    missing=[first_reading, morning_psalms]
+Check 4th-easter-A
+    missing=[first_reading, morning_psalms]
+Check 4th-easter-B
+    missing=[first_reading, morning_psalms]
+Check 4th-easter-C
+    missing=[first_reading, morning_psalms]
+Check 5th-easter-A
+    missing=[first_reading, morning_psalms]
+Check 5th-easter-B
+    missing=[first_reading, morning_psalms]
+Check 5th-easter-C
+    missing=[first_reading, morning_psalms]
+Check 6th-easter-A
+    missing=[first_reading, morning_psalms]
+Check 6th-easter-B
+    missing=[first_reading, morning_psalms]
+Check 6th-easter-C
+    missing=[first_reading, morning_psalms]
+Check thursday-6th-easter-A
+    missing=[first_reading, morning_psalms]
+Check thursday-6th-easter-B
+    missing=[first_reading, morning_psalms]
+Check thursday-6th-easter-C
+    missing=[first_reading, morning_psalms]
+Check 7th-easter-A
+    missing=[first_reading, morning_psalms]
+Check 7th-easter-B
+    missing=[first_reading, morning_psalms]
+Check 7th-easter-C
+    missing=[first_reading, morning_psalms]
+Check pentecost-A
+    missing=[first_reading, morning_psalms]
+Check pentecost-B
+    missing=[first_reading, morning_psalms]
+Check pentecost-C
+    missing=[first_reading, morning_psalms]
+Check trinity-sunday-A
+    missing=[first_reading, morning_psalms]
+Check trinity-sunday-B
+    missing=[first_reading, morning_psalms]
+Check trinity-sunday-C
+    missing=[first_reading, morning_psalms]
+Check proper-1-A
+    missing=[first_reading, morning_psalms]
+Check proper-1-B
+    missing=[first_reading, morning_psalms]
+Check proper-1-C
+    missing=[first_reading, morning_psalms]
+Check proper-2-A
+    missing=[first_reading, morning_psalms]
+Check proper-2-B
+    missing=[first_reading, morning_psalms]
+Check proper-2-C
+    missing=[first_reading, morning_psalms]
+Check proper-3-A
+    missing=[first_reading, morning_psalms]
+Check proper-3-B
+    missing=[first_reading, morning_psalms]
+Check proper-3-C
+    missing=[first_reading, morning_psalms]
+Check proper-7-B
+    extra  =[morning_psalms]
+Check proper-7-C
+    extra  =[morning_psalms]
+Check proper-11-A
+    extra  =[morning_psalms]
+Check proper-19-A
+    extra  =[morning_psalms]
+Check proper-27-C
+    extra  =[morning_psalms]
+Check confession-of-st-peter-A
+    missing=[first_reading, morning_psalms]
+Check confession-of-st-peter-B
+    missing=[first_reading, morning_psalms]
+Check confession-of-st-peter-C
+    missing=[first_reading, morning_psalms]
+Check conversion-of-st-paul-A
+    missing=[first_reading, morning_psalms]
+Check conversion-of-st-paul-B
+    missing=[first_reading, morning_psalms]
+Check conversion-of-st-paul-C
+    missing=[first_reading, morning_psalms]
+Check the-presentation-A
+    missing=[first_reading, morning_psalms]
+Check the-presentation-B
+    missing=[first_reading, morning_psalms]
+Check the-presentation-C
+    missing=[first_reading, morning_psalms]
+Check st-matthias-A
+    missing=[first_reading, morning_psalms]
+Check st-matthias-B
+    missing=[first_reading, morning_psalms]
+Check st-matthias-C
+    missing=[first_reading, morning_psalms]
+Check st-joseph-A
+    missing=[first_reading, morning_psalms]
+Check st-joseph-B
+    missing=[first_reading, morning_psalms]
+Check st-joseph-C
+    missing=[first_reading, morning_psalms]
+Check annunciation-A
+    missing=[first_reading, morning_psalms]
+Check annunciation-B
+    missing=[first_reading, morning_psalms]
+Check annunciation-C
+    missing=[first_reading, morning_psalms]
+Check st-mark-A
+    missing=[first_reading, morning_psalms]
+Check st-mark-B
+    missing=[first_reading, morning_psalms]
+Check st-mark-C
+    missing=[first_reading, morning_psalms]
+Check ss-philip-and-james-A
+    missing=[first_reading, morning_psalms]
+Check ss-philip-and-james-B
+    missing=[first_reading, morning_psalms]
+Check ss-philip-and-james-C
+    missing=[first_reading, morning_psalms]
+Check the-visitation-A
+    missing=[first_reading, morning_psalms]
+Check the-visitation-B
+    missing=[first_reading, morning_psalms]
+Check the-visitation-C
+    missing=[first_reading, morning_psalms]
+Check st-barnabas-A
+    missing=[first_reading, morning_psalms]
+Check st-barnabas-B
+    missing=[first_reading, morning_psalms]
+Check st-barnabas-C
+    missing=[first_reading, morning_psalms]
+Check nativity-of-st-john-the-baptist-A
+    missing=[first_reading, morning_psalms]
+Check nativity-of-st-john-the-baptist-B
+    missing=[first_reading, morning_psalms]
+Check nativity-of-st-john-the-baptist-C
+    missing=[first_reading, morning_psalms]
+Check ss-peter-and-paul-A
+    missing=[first_reading, morning_psalms]
+Check ss-peter-and-paul-B
+    missing=[first_reading, morning_psalms]
+Check ss-peter-and-paul-C
+    missing=[first_reading, morning_psalms]
+Check independence-day-A
+    missing=[first_reading, morning_psalms]
+Check independence-day-B
+    missing=[first_reading, morning_psalms]
+Check independence-day-C
+    missing=[first_reading, morning_psalms]
+Check st-mary-magdalene-A
+    missing=[first_reading, morning_psalms]
+Check st-mary-magdalene-B
+    missing=[first_reading, morning_psalms]
+Check st-mary-magdalene-C
+    missing=[first_reading, morning_psalms]
+Check st-james-A
+    missing=[first_reading, morning_psalms]
+Check st-james-B
+    missing=[first_reading, morning_psalms]
+Check st-james-C
+    missing=[first_reading, morning_psalms]
+Check the-transfiguration-A
+    missing=[first_reading, morning_psalms]
+Check the-transfiguration-B
+    missing=[first_reading, morning_psalms]
+Check the-transfiguration-C
+    missing=[first_reading, morning_psalms]
+Check st-mary-the-virgin-A
+    missing=[first_reading, morning_psalms]
+Check st-mary-the-virgin-B
+    missing=[first_reading, morning_psalms]
+Check st-mary-the-virgin-C
+    missing=[first_reading, morning_psalms]
+Check st-bartholomew-A
+    missing=[first_reading, morning_psalms]
+Check st-bartholomew-B
+    missing=[first_reading, morning_psalms]
+Check st-bartholomew-C
+    missing=[first_reading, morning_psalms]
+Check holy-cross-A
+    missing=[first_reading, morning_psalms]
+Check holy-cross-B
+    missing=[first_reading, morning_psalms]
+Check holy-cross-C
+    missing=[first_reading, morning_psalms]
+Check st-matthew-A
+    missing=[first_reading, morning_psalms]
+Check st-matthew-B
+    missing=[first_reading, morning_psalms]
+Check st-matthew-C
+    missing=[first_reading, morning_psalms]
+Check st-michael-A
+    missing=[first_reading, morning_psalms]
+Check st-michael-B
+    missing=[first_reading, morning_psalms]
+Check st-michael-C
+    missing=[first_reading, morning_psalms]
+Check st-luke-A
+    missing=[first_reading, morning_psalms]
+Check st-luke-B
+    missing=[first_reading, morning_psalms]
+Check st-luke-C
+    missing=[first_reading, morning_psalms]
+Check st-james-of-jerusalem-A
+    missing=[first_reading, morning_psalms]
+Check st-james-of-jerusalem-B
+    missing=[first_reading, morning_psalms]
+Check st-james-of-jerusalem-C
+    missing=[first_reading, morning_psalms]
+Check ss-simon-and-jude-A
+    missing=[first_reading, morning_psalms]
+Check ss-simon-and-jude-B
+    missing=[first_reading, morning_psalms]
+Check ss-simon-and-jude-C
+    missing=[first_reading, morning_psalms]
+Check all-saints-day-A
+    missing=[first_reading, morning_psalms]
+Check all-saints-day-B
+    missing=[first_reading, morning_psalms]
+Check all-saints-day-C
+    missing=[first_reading, morning_psalms]
+Check st-andrew-A
+    missing=[first_reading, morning_psalms]
+Check st-andrew-B
+    missing=[first_reading, morning_psalms]
+Check st-andrew-C
+    missing=[first_reading, morning_psalms]
+Check st-thomas-A
+    missing=[first_reading, morning_psalms]
+Check st-thomas-B
+    missing=[first_reading, morning_psalms]
+Check st-thomas-C
+    missing=[first_reading, morning_psalms]
+Check st-stephen-A
+    missing=[first_reading, morning_psalms]
+Check st-stephen-B
+    missing=[first_reading, morning_psalms]
+Check st-stephen-C
+    missing=[first_reading, morning_psalms]
+Check st-john-A
+    missing=[first_reading, morning_psalms]
+Check st-john-B
+    missing=[first_reading, morning_psalms]
+Check st-john-C
+    missing=[first_reading, morning_psalms]
+Check holy-innocents-A
+    missing=[first_reading, morning_psalms]
+Check holy-innocents-B
+    missing=[first_reading, morning_psalms]
+Check holy-innocents-C
+    missing=[first_reading, morning_psalms]
+Check thanksgiving-day-A
+    missing=[first_reading, morning_psalms]
+Check thanksgiving-day-B
+    missing=[first_reading, morning_psalms]
+Check thanksgiving-day-C
+    missing=[first_reading, morning_psalms]
+
+
+rcl2:
+Check second-advent-C
+    extra  =[first_reading]
+Check third-advent-A
+    extra  =[morning_psalms]
+Check third-advent-B
+    extra  =[morning_psalms]
+Check fourth-advent-B
+    extra  =[morning_psalms]
+Check fourth-advent-C
+    extra  =[morning_psalms]
+Check 8th-epiphany-C
+    extra  =[first_reading]
+Check last-epiphany-A
+    extra  =[morning_psalms]
+Check wednesday-last-epiphany-A
+    extra  =[morning_psalms]
+Check wednesday-last-epiphany-B
+    extra  =[morning_psalms]
+Check wednesday-last-epiphany-C
+    extra  =[morning_psalms]
+Check 5th-lent-B
+    extra  =[morning_psalms]
+Check holy-week-A
+    extra  =[palms_gospel]
+Check holy-week-B
+    extra  =[palms_gospel, palms_gospel]
+Check holy-week-C
+    extra  =[palms_gospel]
+Check easter-B
+    extra  =[first_reading, morning_psalms, second_reading, gospel]
+Check easter-C
+    extra  =[first_reading]
+Check monday-easter-A
+    extra  =[morning_psalms]
+    missing=[first_reading]
+Check monday-easter-B
+    extra  =[morning_psalms]
+    missing=[first_reading]
+Check monday-easter-C
+    extra  =[morning_psalms]
+    missing=[first_reading]
+Check tuesday-easter-A
+    extra  =[morning_psalms]
+    missing=[first_reading]
+Check tuesday-easter-B
+    extra  =[morning_psalms]
+    missing=[first_reading]
+Check tuesday-easter-C
+    extra  =[morning_psalms]
+    missing=[first_reading]
+Check wednesday-easter-A
+    extra  =[morning_psalms]
+    missing=[first_reading]
+Check wednesday-easter-B
+    extra  =[morning_psalms]
+    missing=[first_reading]
+Check wednesday-easter-C
+    extra  =[morning_psalms]
+    missing=[first_reading]
+Check thursday-easter-A
+    extra  =[morning_psalms]
+    missing=[first_reading]
+Check thursday-easter-B
+    extra  =[morning_psalms]
+    missing=[first_reading]
+Check thursday-easter-C
+    extra  =[morning_psalms]
+    missing=[first_reading]
+Check friday-easter-A
+    extra  =[morning_psalms]
+    missing=[first_reading]
+Check friday-easter-B
+    extra  =[morning_psalms]
+    missing=[first_reading]
+Check friday-easter-C
+    extra  =[morning_psalms]
+    missing=[first_reading]
+Check saturday-easter-A
+    extra  =[morning_psalms]
+    missing=[first_reading]
+Check saturday-easter-B
+    extra  =[morning_psalms]
+    missing=[first_reading]
+Check saturday-easter-C
+    extra  =[morning_psalms]
+    missing=[first_reading]
+Check 2nd-easter-C
+    extra  =[morning_psalms]
+Check thursday-6th-easter-A
+    extra  =[morning_psalms]
+Check thursday-6th-easter-B
+    extra  =[morning_psalms]
+Check thursday-6th-easter-C
+    extra  =[morning_psalms]
+Check pentecost-C
+    extra  =[first_reading]
+Check trinity-sunday-A
+    extra  =[morning_psalms]
+Check trinity-sunday-B
+    extra  =[morning_psalms]
+Check trinity-sunday-C
+    extra  =[morning_psalms]
+Check proper-3-C
+    extra  =[first_reading]
+Check proper-17-C
+    extra  =[first_reading]
+Check proper-25-C
+    extra  =[first_reading]
+Check the-presentation-A
+    extra  =[morning_psalms]
+Check the-presentation-B
+    extra  =[morning_psalms]
+Check the-presentation-C
+    extra  =[morning_psalms]
+Check st-joseph-A
+    extra  =[morning_psalms]
+Check st-joseph-B
+    extra  =[morning_psalms]
+Check st-joseph-C
+    extra  =[morning_psalms]
+Check annunciation-A
+    extra  =[morning_psalms]
+Check annunciation-B
+    extra  =[morning_psalms]
+Check annunciation-C
+    extra  =[morning_psalms]
+Check st-mark-A
+    extra  =[morning_psalms]
+Check st-mark-B
+    extra  =[morning_psalms]
+Check st-mark-C
+    extra  =[morning_psalms]
+Check nativity-of-st-john-the-baptist-A
+    extra  =[morning_psalms]
+Check nativity-of-st-john-the-baptist-B
+    extra  =[morning_psalms]
+Check nativity-of-st-john-the-baptist-C
+    extra  =[morning_psalms]
+Check independence-day-A
+    extra  =[morning_psalms]
+Check independence-day-B
+    extra  =[morning_psalms]
+Check independence-day-C
+    extra  =[morning_psalms]
+Check the-transfiguration-A
+    extra  =[morning_psalms]
+Check the-transfiguration-B
+    extra  =[morning_psalms]
+Check the-transfiguration-C
+    extra  =[morning_psalms]
+Check st-mary-the-virgin-A
+    extra  =[morning_psalms]
+Check st-mary-the-virgin-B
+    extra  =[morning_psalms]
+Check st-mary-the-virgin-C
+    extra  =[morning_psalms]
+Check st-bartholomew-A
+    extra  =[morning_psalms]
+Check st-bartholomew-B
+    extra  =[morning_psalms]
+Check st-bartholomew-C
+    extra  =[morning_psalms]
+Check holy-cross-A
+    extra  =[morning_psalms]
+Check holy-cross-B
+    extra  =[morning_psalms]
+Check holy-cross-C
+    extra  =[morning_psalms]
+Check st-michael-A
+    extra  =[morning_psalms]
+Check st-michael-B
+    extra  =[morning_psalms]
+Check st-michael-C
+    extra  =[morning_psalms]
+Check st-luke-A
+    extra  =[morning_psalms]
+Check st-luke-B
+    extra  =[morning_psalms]
+Check st-luke-C
+    extra  =[morning_psalms]
+Check all-saints-day-B
+    extra  =[first_reading]
+Check st-andrew-A
+    extra  =[morning_psalms]
+Check st-andrew-B
+    extra  =[morning_psalms]
+Check st-andrew-C
+    extra  =[morning_psalms]
+Check st-stephen-A
+    extra  =[morning_psalms]
+Check st-stephen-B
+    extra  =[morning_psalms]
+Check st-stephen-C
+    extra  =[morning_psalms]
+Check st-john-A
+    extra  =[morning_psalms]
+Check st-john-B
+    extra  =[morning_psalms]
+Check st-john-C
+    extra  =[morning_psalms]
+#+end_example
+** Show records
+#+BEGIN_SRC python :python python3 :results output
+  import json
+
+  def loadlectionary(filename):
+    with open(filename, "r") as f:
+      data = f.read()
+    return json.loads(data)
+
+  def analyze(data, when, day):
+    print("Records for " + day + "-" + when)
+    for i in data:
+      if(i['day']==day and i['when']==when):
+        print(i)
+
+  rcl1 = loadlectionary('lectionary/rcl1.json')
+  rcl2 = loadlectionary('lectionary/rcl2.json')
+
+  print("rcl1")
+  analyze(rcl1, "A", "third-advent")
+  print()
+  print("rcl2")
+  analyze(rcl2, "A", "third-advent")
+
+
+
+  print("\n\n\nrcl1")
+  analyze(rcl1, "A", "proper-11")
+  print()
+  print("rcl2")
+  analyze(rcl2, "A", "proper-11")
+
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+rcl1
+Records for third-advent-A
+{'whentype': 'year', 'when': 'A', 'day': 'third-advent', 'lectionary': 'rclsundayTrack1', 'type': 'second_reading', 'citation': 'James 5:7-10'}
+{'whentype': 'year', 'when': 'A', 'day': 'third-advent', 'lectionary': 'rclsundayTrack1', 'type': 'gospel', 'citation': 'Matthew 11:2-11'}
+
+rcl2
+Records for third-advent-A
+{'whentype': 'year', 'when': 'A', 'day': 'third-advent', 'lectionary': 'rclsunday', 'type': 'first_reading', 'citation': 'Isaiah 35:1-10'}
+{'whentype': 'year', 'when': 'A', 'day': 'third-advent', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'Psalm 146:4-9'}
+{'whentype': 'year', 'when': 'A', 'day': 'third-advent', 'lectionary': 'rclsunday', 'type': 'second_reading', 'citation': 'James 5:7-10'}
+{'whentype': 'year', 'when': 'A', 'day': 'third-advent', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Matthew 11:2-11'}
+{'whentype': 'year', 'when': 'A', 'day': 'third-advent', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'canticle-15'}
+
+
+
+rcl1
+Records for proper-11-A
+{'whentype': 'year', 'when': 'A', 'day': 'proper-11', 'lectionary': 'rclsundayTrack1', 'type': 'first_reading', 'citation': 'Genesis 28:10-19'}
+{'whentype': 'year', 'when': 'A', 'day': 'proper-11', 'lectionary': 'rclsundayTrack1', 'type': 'morning_psalms', 'citation': 'Psalm 139:1-11, 22-23'}
+{'whentype': 'year', 'when': 'A', 'day': 'proper-11', 'lectionary': 'rclsundayTrack1', 'type': 'second_reading', 'citation': 'Romans 8:12-25'}
+{'whentype': 'year', 'when': 'A', 'day': 'proper-11', 'lectionary': 'rclsundayTrack1', 'type': 'gospel', 'citation': 'Matthew 13:24-30, 13:36-43'}
+{'whentype': 'year', 'when': 'A', 'day': 'proper-11', 'lectionary': 'rclsundayTrack1', 'type': 'morning_psalms', 'citation': 'Wisdom of Solomon 12:13, 16-19'}
+
+rcl2
+Records for proper-11-A
+{'whentype': 'year', 'when': 'A', 'day': 'proper-11', 'lectionary': 'rclsunday', 'type': 'first_reading', 'citation': 'Isaiah 44:6-8'}
+{'whentype': 'year', 'when': 'A', 'day': 'proper-11', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'Psalm 86:11-17'}
+{'whentype': 'year', 'when': 'A', 'day': 'proper-11', 'lectionary': 'rclsunday', 'type': 'second_reading', 'citation': 'Romans 8:12-25'}
+{'whentype': 'year', 'when': 'A', 'day': 'proper-11', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Matthew 13:24-30, 13:36-43'}
+#+end_example
+
+** See if the duplicate data is all consistent
+Yup, qol b'seder!
+#+BEGIN_SRC python :python python3 :results output
+  import json
+
+  def loadlectionary(filename):
+    with open(filename, "r") as f:
+      data = f.read()
+    return json.loads(data)
+
+  def narrow_data_set(data, field, value):
+    results=[]
+    for i in data:
+      if(i[field]==value):
+        results.append(i)
+    return results
+
+  def get_days_set(data):
+    days=[]
+    for i in data:
+      if(i['day'] not in days):
+        days.append(i['day'])
+    return days
+
+  def compare_readings(data1, data2, day, year):
+    records1 = narrow_data_set(narrow_data_set(data1, 'day', day), 'when', year)
+    records2 = narrow_data_set(narrow_data_set(data2, 'day', day), 'when', year)
+    readings = ['first_reading', 'second_reading', 'gospel', 'morning_psalms']
+    missing = []
+    for r in readings:
+      citations1 = []
+      citations2 = []
+      for i in narrow_data_set(records1, 'type', r):
+        citations1.append(i['citation'])
+      for i in narrow_data_set(records2, 'type', r):
+        citations2.append(i['citation'])
+      for i in citations1:
+         if i in citations2:
+           citations2.remove(i)
+      if(day.find('proper')>=0 and r in ['first_reading', 'morning_psalms']):
+        ok = 1
+      else:
+          if(len(citations1) > 0 and len(citations2) > 0):
+              print("Mismatch for " + day + "-" + year + ":")
+              print("    rcl1  =[" + ", ".join(map(str, citations1)) + "]")
+              print("    rcl2  =[" + ", ".join(map(str, citations2)) + "]")
+
+  rcl1 = loadlectionary('lectionary/rcl1.json')
+  rcl2 = loadlectionary('lectionary/rcl2.json')
+
+  days = get_days_set(rcl1)
+  years = ['A', 'B', 'C']
+
+  for d in days:
+      for y in years:
+        compare_readings(rcl1, rcl2, d, y)
+
+#+END_SRC
+
+#+RESULTS:
+** Show records formatted like BCP
+#+BEGIN_SRC python :python python3 :results output
+  import json
+
+  types = ['first_reading', 'second_reading', 'gospel', 'morning_psalms']
+  years = ['A', 'B', 'C']
+  breaks = ['advent-1', '1st-sunday-after-christmas', '4th-epiphany', '3rd-lent', 'easter', '4th-easter', 'proper-1', 'proper-4', 'proper-10', 'proper-17', 'proper-24', 'confession-of-st-peter', 'st-mark', 'st-james', 'st-luke', 'st-john']
+
+  def loadlectionary(filename):
+    with open(filename, "r") as f:
+      data = f.read()
+    return json.loads(data)
+
+  def get_days_set(data):
+    days=[]
+    for i in data:
+      if(i['day'] not in days):
+        days.append(i['day'])
+    return days
+
+  def narrow_data_set(data, field, value):
+    results=[]
+    for i in data:
+      if(i[field]==value):
+        results.append(i)
+    return results
+
+  def get_citations(data, type):
+    results = []
+    for i in narrow_data_set(data, 'type', type):
+       if i['citation'] not in results:
+         if (results):
+           results.append("/or/ " + i['citation'])
+         else:
+           results.append(i['citation'])
+    results.reverse() # return reverse so they can be retrieved with .pop()
+    return results
+
+  def show(data, when, day):
+    data = narrow_data_set(narrow_data_set(data, 'when', when), 'day', day)
+    if (day.find("proper")>=0):
+      track1 = narrow_data_set(data, 'lectionary', 'rclsundayTrack1')
+      track2 = narrow_data_set(data, 'lectionary', 'rclsunday')
+      psalms=get_citations(track2, 'morning_psalms')
+      psalms+=get_citations(track2, 'first_reading')
+      psalms+=get_citations(track1, 'morning_psalms')
+      psalms+=get_citations(track1, 'first_reading')
+      lessons=get_citations(data, 'gospel')
+      lessons+=get_citations(data, 'second_reading')
+      print("| " + day + " | " + psalms.pop() + " | " + lessons.pop() + " | ")
+      while (psalms):
+        if (lessons):
+          print("|           | " + psalms.pop() + " | " + lessons.pop() + " | ")
+        else:
+          print("|           | " + psalms.pop() + " |                 |")
+    else:
+      psalms=get_citations(data, 'morning_psalms')
+      lessons=get_citations(data, 'gospel')
+      lessons+=get_citations(data, 'second_reading')
+      lessons+=get_citations(data, 'first_reading')
+      print("| " + day + " | " + psalms.pop() + " | " + lessons.pop() + " | ")
+      while (lessons):
+        if (psalms):
+          print("|           | " + psalms.pop() + " | " + lessons.pop() + " | ")
+        else:
+          print("|           |                | " + lessons.pop() + " | ")
+
+
+
+  rcl = loadlectionary('lectionary/rcl1.json')
+  rcl += loadlectionary('lectionary/rcl2.json')
+  days = get_days_set(rcl)
+
+  print("*** Venite Lectionary Formatted as BCP")
+  print()
+  for year in years:
+    print()
+    print()
+    print("**** Year " + year)
+    for day in days:
+      if day in breaks:
+          print()
+          print("|-----------|----------|--------|")
+          if day.find("proper") >= 0:
+              print("|Day | OT & Psalms | NT Lessons |")
+          else:
+              print("|Day | Psalm | Lesson |")
+      show(rcl, year, day)
+      print("| | | |")
+
+
+
+
+
+#+END_SRC
+** Venite Lectionary Formatted as BCP
+
+
+
+*** Year A
+| first-advent | Psalm 122 | Isaiah 2:1-5 |
+|           |                | Romans 13:11-14 |
+|           |                | Matthew 24:36-44 |
+| | | |
+| second-advent | Psalm 72:1-7, 18-19 | Isaiah 11:1-10 |
+|           |                | Romans 15:4-13 |
+|           |                | Matthew 3:1-12 |
+| | | |
+| third-advent | Psalm 146:4-9 | Isaiah 35:1-10 |
+|           | /or/ canticle-15 | James 5:7-10 |
+|           |                | Matthew 11:2-11 |
+| | | |
+| fourth-advent | Psalm 80:1-7, 16-18 | Isaiah 7:10-16 |
+|           |                | Romans 1:1-7 |
+|           |                | Matthew 1:18-25 |
+| | | |
+| christmas | Psalm 96 | Isaiah 9:2-7 |
+|           |                | Titus 2:11-14 |
+|           |                | Luke 2:1-20 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| 1st-sunday-after-christmas | Psalm 147 | Isaiah 61:10-62:3 |
+|           |                | Galatians 3:23-25;4:4-7 |
+|           |                | John 1:1-18 |
+| | | |
+| holy-name | Psalm 8 | Numbers 6:22-27 |
+|           |                | Galatians 4:4-7 |
+|           |                | Luke 2:15-21 |
+| | | |
+| 2nd-sunday-after-christmas | Psalm 84 | Jeremiah 31:7-14 |
+|           |                | Ephesians 1:3-6,15-19 |
+|           |                | Matthew 2:13-15, 2:19-23 |
+| | | |
+| epiphany | Psalm 72:1-7, 10-14 | Isaiah 60:1-6 |
+|           |                | Ephesians 3:1-12 |
+|           |                | Matthew 2:1-12 |
+| | | |
+| 1st-epiphany | Psalm 29 | Isaiah 42:1-9 |
+|           |                | Acts 10:34-43 |
+|           |                | Matthew 3:13-17 |
+| | | |
+| 2nd-epiphany | Psalm 40:1-12 | Isaiah 49:1-7 |
+|           |                | 1 Corinthians 1:1-9 |
+|           |                | John 1:29-42 |
+| | | |
+| 3rd-epiphany | Psalm 27:1, 5-13 | Isaiah 9:1-4 |
+|           |                | 1 Corinthians 1:10-18 |
+|           |                | Matthew 4:12-23 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| 4th-epiphany | Psalm 15 | Micah 6:1-8 |
+|           |                | 1 Corinthians 1:18-31 |
+|           |                | Matthew 5:1-12 |
+| | | |
+| 5th-epiphany | Psalm 112:1-10 | Isaiah 58:1-12 |
+|           |                | 1 Corinthians 2:1-16 |
+|           |                | Matthew 5:13-20 |
+| | | |
+| 6th-epiphany | Psalm 119:1-8 | Ecclesiasticus 15:15-20 |
+|           |                | 1 Corinthians 3:1-9 |
+|           |                | Matthew 5:21-37 |
+| | | |
+| 7th-epiphany | Psalm 119:33-40 | Leviticus 19:1-2, 19:9-18 |
+|           |                | 1 Corinthians 3:10-11, 3:16-23 |
+|           |                | Matthew 5:38-48 |
+| | | |
+| 8th-epiphany | Psalm 131 | Isaiah 49:8-16 |
+|           |                | 1 Corinthians 4:1-5 |
+|           |                | Matthew 6:24-34 |
+| | | |
+| last-epiphany | Psalm 2 | Exodus 24:12-18 |
+|           | /or/ Psalm 99 | 2 Peter 1:16-21 |
+|           |                | Matthew 17:1-9 |
+| | | |
+| wednesday-last-epiphany | Psalm 103 | Isaiah 58:1-12 |
+|           | /or/ Psalm 103:8-14 | 2 Corinthians 5:20-6:10 |
+|           |                | Matthew 6:1-6, 6:16-21 |
+| | | |
+| 1st-lent | Psalm 32 | Genesis 2:15-17; 3:1-7 |
+|           |                | Romans 5:12-19 |
+|           |                | Matthew 4:1-11 |
+| | | |
+| 2nd-lent | Psalm 121 | Genesis 12:1-4 |
+|           |                | Romans 4:1-5, 13-17 |
+|           |                | John 3:1-17 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| 3rd-lent | Psalm 95 | Exodus 17:1-7 |
+|           |                | Romans 5:1-11 |
+|           |                | John 4:5-42 |
+| | | |
+| 4th-lent | Psalm 23 | 1 Samuel 16:1-13 |
+|           |                | Ephesians 5:8-14 |
+|           |                | John 9:1-41 |
+| | | |
+| 5th-lent | Psalm 130 | Ezekiel 37:1-14 |
+|           |                | Romans 8:6-11 |
+|           |                | John 11:1-45 |
+| | | |
+| holy-week | Psalm 31:9-16 | Isaiah 50:4-9 |
+|           |                | Philippians 2:5-11 |
+|           |                | Matthew 27:11-54 |
+| | | |
+| monday-holy-week | Psalm 36:5-11 | Isaiah 42:1-9 |
+|           |                | Hebrews 9:11-15 |
+|           |                | John 12:1-11 |
+| | | |
+| tuesday-holy-week | Psalm 71:1-14 | Isaiah 49:1-7 |
+|           |                | 1 Corinthians 1:18-31 |
+|           |                | John 12:20-36 |
+| | | |
+| wednesday-holy-week | Psalm 70 | Isaiah 50:4-9 |
+|           |                | Hebrews 12:1-3 |
+|           |                | John 13:21-32 |
+| | | |
+| thursday-holy-week | Psalm 116:1, 10-17 | Exodus 12:1-14 |
+|           |                | 1 Corinthians 11:23-26 |
+|           |                | John 13:1-17, 13:31-35 |
+| | | |
+| friday-holy-week | Psalm 22 | Isaiah 52:13-53:12 |
+|           |                | Hebrews 10:16-25 |
+|           |                | John 18:1-19:42 |
+| | | |
+| saturday-holy-week | Psalm 31:1-4, 15-16 | Job 14:1-14 |
+|           |                | 1 Peter 4:1-8 |
+|           |                | Matthew 27:57-66 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| easter | Psalm 118:1-2, 14-24 | Acts 10:34-43 |
+|           |                | Colossians 3:1-4 |
+|           |                | John 20:1-18 |
+| | | |
+| monday-easter | Psalm 16:8-11 | Acts 2:14,22b-32 |
+|           | /or/ Psalm 118:19-24 | Matthew 28:9-15 |
+| | | |
+| tuesday-easter | Psalm 33:18-22 | Acts 2:36-41 |
+|           | /or/ Psalm 118:19-24 | John 20:11-18 |
+| | | |
+| wednesday-easter | Psalm 105:1-8 | Acts 3:1-10 |
+|           | /or/ Psalm 118:29-24 | Luke 24:13-35 |
+| | | |
+| thursday-easter | Psalm 8 | Acts 3:11-26 |
+|           | /or/ Psalm 114 | Luke 24:36-48 |
+| | | |
+| friday-easter | Psalm 118:19-24 | Acts 4:1-12 |
+|           | /or/ Psalm 116:1-8 | John 21:1-14 |
+| | | |
+| saturday-easter | Psalm 118:14-18 | Acts 4:13-21 |
+|           | /or/ Psalm 118:19-24 | Mark 16:9-15, 20 |
+| | | |
+| 2nd-easter | Psalm 16 | Acts 2:14, 2:22-32 |
+|           |                | 1 Peter 1:3-9 |
+|           |                | John 20:19-31 |
+| | | |
+| 3rd-easter | Psalm 116:1-3, 10-17 | Acts 2:14, 2:36-41 |
+|           |                | 1 Peter 1:17-23 |
+|           |                | Luke 24:13-35 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| 4th-easter | Psalm 23 | Acts 2:42-47 |
+|           |                | 1 Peter 2:19-25 |
+|           |                | John 10:1-10 |
+| | | |
+| 5th-easter | Psalm 31:1-5, 15-16 | Acts 7:55-60 |
+|           |                | 1 Peter 2:2-10 |
+|           |                | John 14:1-14 |
+| | | |
+| 6th-easter | Psalm 66:7-18 | Acts 17:22-31 |
+|           |                | 1 Peter 3:13-22 |
+|           |                | John 14:15-21 |
+| | | |
+| thursday-6th-easter | Psalm 47 | Acts 1:1-11 |
+|           | /or/ Psalm 93 | Ephesians 1:15-23 |
+|           |                | Luke 24:44-53 |
+| | | |
+| 7th-easter | Psalm 68:1-10, 33-36 | Acts 1:6-14 |
+|           |                | 1 Peter 4:12-14; 5:6-11 |
+|           |                | John 17:1-11 |
+| | | |
+| pentecost | Psalm 104:25-35, 37 | Acts 2:1-21 |
+|           |                | Acts 2:1-21 |
+|           |                | John 20:19-23 |
+| | | |
+| trinity-sunday | Psalm 8 | Genesis 1:1-2:4 |
+|           | /or/ canticle-13 | 2 Corinthians 13:11-13 |
+|           |                | Matthew 28:16-20 |
+| | | |
+
+|-----------|----------|--------|
+|Day | OT & Psalms | NT Lessons |
+| proper-1 | Ecclesiasticus 15:15-20 | 1 Corinthians 3:1-9 |
+|           | Psalm 119:1-8 | Matthew 5:21-37 |
+| | | |
+| proper-2 | Leviticus 19:1-2, 19:9-18 | 1 Corinthians 3:10-11, 16-23 |
+|           | Psalm 119:33-40 | Matthew 5:38-48 |
+| | | |
+| proper-3 | Isaiah 49:8-16 | 1 Corinthians 4:1-5 |
+|           | Psalm 131 | Matthew 6:24-34 |
+| | | |
+
+|-----------|----------|--------|
+|Day | OT & Psalms | NT Lessons |
+| proper-4 | Genesis 6:9-22; 7:24; 8:14-19 | Romans 1:16-17; 3:22b-28, (29-31) |
+|           | Psalm 46 | Matthew 7:21-29 |
+|           | Deuteronomy 11:18-21, 11:26-28 |                 |
+|           | Psalm 31:1-5, 19-24 |                 |
+| | | |
+| proper-5 | Genesis 12:1-9 | Romans 4:13-25 |
+|           | Psalm 33:1-12 | Matthew 9:9-13, 9:18-26 |
+|           | Hosea 5:15-6:6 |                 |
+|           | Psalm 50:7-15 |                 |
+| | | |
+| proper-6 | Genesis 18:1-15 | Romans 5:1-8 |
+|           | Psalm 116:1-2, 12-19 | Matthew 9:35-10:23 |
+|           | Exodus 19:2-8 |                 |
+|           | Psalm 100 |                 |
+| | | |
+| proper-7 | Genesis 21:8-21 | Romans 6:1-11 |
+|           | Psalm 86:1-10, 16-17 | Matthew 10:24-39 |
+|           | Jeremiah 20:7-13 |                 |
+|           | Psalm 69:8-11, (12-17), 18-20 |                 |
+| | | |
+| proper-8 | Genesis 22:1-14 | Romans 6:12-23 |
+|           | Psalm 13 | Matthew 10:40-42 |
+|           | Jeremiah 28:5-9 |                 |
+|           | Psalm 89:1-4, 15-18 |                 |
+| | | |
+| proper-9 | Genesis 24:34-38, 42-49, 58-67 | Romans 7:15-25 |
+|           | Psalm 45:11-18 | Matthew 11:16-19, 11:25-30 |
+|           | Zechariah 9:9-12 |                 |
+|           | Psalm 145:8-15 |                 |
+| | | |
+
+|-----------|----------|--------|
+|Day | OT & Psalms | NT Lessons |
+| proper-10 | Genesis 25:19-34 | Romans 8:1-11 |
+|           | Psalm 119:105-112 | Matthew 13:1-9, 13:18-23 |
+|           | Isaiah 55:10-13 |                 |
+|           | Psalm 65:(1-8), 9-14 |                 |
+| | | |
+| proper-11 | Genesis 28:10-19 | Romans 8:12-25 |
+|           | Psalm 139:1-11, 22-23 | Matthew 13:24-30, 13:36-43 |
+|           | /or/ Wisdom of Solomon 12:13, 16-19 |                 |
+|           | Isaiah 44:6-8 |                 |
+|           | Psalm 86:11-17 |                 |
+| | | |
+| proper-12 | Genesis 29:15-28 | Romans 8:26-39 |
+|           | Psalm 105:1-11, 45b | Matthew 13:31-33, 13:44-52 |
+|           | 1 Kings 3:5-12 |                 |
+|           | Psalm 119:129-136 |                 |
+| | | |
+| proper-13 | Genesis 32:22-31 | Romans 9:1-5 |
+|           | Psalm 17:1-7, 16 | Matthew 14:13-21 |
+|           | Isaiah 55:1-5 |                 |
+|           | Psalm 145:8-9, 15-22 |                 |
+| | | |
+| proper-14 | Genesis 37:1-4, 37:12-28 | Romans 10:5-15 |
+|           | Psalm 105: 1-6, 16-22, 45b | Matthew 14:22-33 |
+|           | 1 Kings 19:9-18 |                 |
+|           | Psalm 85:8-13 |                 |
+| | | |
+| proper-15 | Genesis 45:1-15 | Romans 11:1-2, 29-32 |
+|           | Psalm 133 | Matthew 15:10-28 |
+|           | Isaiah 56:1, 6-8 |                 |
+|           | Psalm 67 |                 |
+| | | |
+| proper-16 | Exodus 1:8-2:10 | Romans 12:1-8 |
+|           | Psalm 124 | Matthew 16:13-20 |
+|           | Isaiah 51:1-6 |                 |
+|           | Psalm 138 |                 |
+| | | |
+
+|-----------|----------|--------|
+|Day | OT & Psalms | NT Lessons |
+| proper-17 | Exodus 3:1-15 | Romans 12:9-21 |
+|           | Psalm 105:1-6, 23-26, 45c | Matthew 16:21-28 |
+|           | Jeremiah 15:15-21 |                 |
+|           | Psalm 26:1-8 |                 |
+| | | |
+| proper-18 | Exodus 12:1-14 | Romans 13:8-14 |
+|           | Psalm 149 | Matthew 18:15-20 |
+|           | Ezekiel 33:7-11 |                 |
+|           | Psalm 119:33-40 |                 |
+| | | |
+| proper-19 | Exodus 14:19-31 | Romans 14:1-12 |
+|           | Psalm 114 | Matthew 18:21-35 |
+|           | /or/ Exodus 15:1b-11, 20-21 |                 |
+|           | Genesis 50:15-21 |                 |
+|           | Psalm 103:(1-7), 8-13 |                 |
+| | | |
+| proper-20 | Exodus 16:2-15 | Philippians 1:21-30 |
+|           | Psalm 105:1-6, 37-45 | Matthew 20:1-16 |
+|           | Jonah 3:10-4:11 |                 |
+|           | Psalm 145:1-8 |                 |
+| | | |
+| proper-21 | Exodus 17:1-7 | Philippians 2:1-13 |
+|           | Psalm 78:1-4, 12-16 | Matthew 21:23-32 |
+|           | Ezekiel 18:1-4, 18:25-32 |                 |
+|           | Psalm 25:1-8 |                 |
+| | | |
+| proper-22 | Exodus 20:1-4, 7-9, 12-20 | Philippians 3:4-14 |
+|           | Psalm 19 | Matthew 21:33-46 |
+|           | Isaiah 5:1-7 |                 |
+|           | Psalm 80:7-14 |                 |
+| | | |
+| proper-23 | Exodus 32:1-14 | Philippians 4:1-9 |
+|           | Psalm 106:1-6, 19-23 | Matthew 22:1-14 |
+|           | Isaiah 25:1-9 |                 |
+|           | Psalm 23 |                 |
+| | | |
+
+|-----------|----------|--------|
+|Day | OT & Psalms | NT Lessons |
+| proper-24 | Exodus 33:12-23 | 1 Thessalonians 1:1-10 |
+|           | Psalm 99 | Matthew 22:15-22 |
+|           | Isaiah 45:1-7 |                 |
+|           | Psalm 96:1-9, (10-13) |                 |
+| | | |
+| proper-25 | Deuteronomy 34:1-12 | 1 Thessalonians 2:1-8 |
+|           | Psalm 90:1-6, 13-17 | Matthew 22:34-46 |
+|           | Leviticus 19:1-2, 19:15-18 |                 |
+|           | Psalm 1 |                 |
+| | | |
+| proper-26 | Joshua 3:7-17 | 1 Thessalonians 2:9-13 |
+|           | Psalm 107:1-7, 33-37 | Matthew 23:1-12 |
+|           | Micah 3:5-12 |                 |
+|           | Psalm 43 |                 |
+| | | |
+| proper-27 | Joshua 24:1-3, 24:14-25 | 1 Thessalonians 4:13-18 |
+|           | Psalm 70 | Matthew 25:1-13 |
+|           | Wisdom 6:12-16 |                 |
+|           | Wisdom of Solomon 6:17-20 |                 |
+| | | |
+| proper-28 | Judges 4:1-7 | 1 Thessalonians 5:1-11 |
+|           | Psalm 123 | Matthew 25:14-30 |
+|           | Zephaniah 1:7, 12-18 |                 |
+|           | Psalm 90:1-8, (9-11), 12 |                 |
+| | | |
+| proper-29 | Ezekiel 34:11-16, 34:20-24 | Ephesians 1:15-23 |
+|           | Psalm 100 | Matthew 25:31-46 |
+|           | Ezekiel 34:11-16, 34:20-24 |                 |
+|           | Psalm 95:1-7 |                 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| confession-of-st-peter | Psalm 23 | Acts 4:8-13 |
+|           |                | 1 Peter 5:1-4 |
+|           |                | Matthew 16:13-19 |
+| | | |
+| conversion-of-st-paul | Psalm 67 | Acts 26:9-21 |
+|           |                | Galatians 1:11-24 |
+|           |                | Matthew 10:16-22 |
+| | | |
+| the-presentation | Psalm 84 | Malachi 3:1-4 |
+|           | /or/ Psalm 24:7-10 | Hebrews 2:14-18 |
+|           |                | Luke 2:22-40 |
+| | | |
+| st-matthias | Psalm 15 | Acts 1:15-26 |
+|           |                | Philippians 3:13-21 |
+|           |                | John 15:1, 6-16 |
+| | | |
+| st-joseph | Psalm 89:1-29 | 2 Samuel 7:4, 8-16 |
+|           | /or/ Psalm 89:1-4, 26-29 | Romans 4:13-18 |
+|           |                | Luke 2:41-52 |
+| | | |
+| annunciation | Psalm 45 | Isaiah 7:10-14 |
+|           | /or/ Canticle 15 | Hebrews 10:4-10 |
+|           |                | Luke 1:26-38 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| st-mark | Psalm 2 | Isaiah 52:7-10 |
+|           | /or/ Psalm 2:7-10 | Ephesians 4:7-8, 4:11-16 |
+|           |                | Mark 1:1-15 |
+| | | |
+| ss-philip-and-james | Psalm 119:33-40 | Isaiah 30:18-21 |
+|           |                | 2 Corinthians 4:1-6 |
+|           |                | John 14:6-14 |
+| | | |
+| the-visitation | Psalm 113 | 1 Samuel 2:1-10 |
+|           |                | Romans 12:9-16 |
+|           |                | Luke 1:39-57 |
+| | | |
+| st-barnabas | Psalm 112 | Isaiah 42:5-12 |
+|           |                | Acts 11:19-30; 13:1-3 |
+|           |                | Matthew 10:7-16 |
+| | | |
+| nativity-of-st-john-the-baptist | Psalm 85 | Isaiah 40:1-11 |
+|           | /or/ Psalm 85:7-13 | Acts 13:14-26 |
+|           |                | Luke 1:57-80 |
+| | | |
+| ss-peter-and-paul | Psalm 87 | Ezekiel 34:11-16 |
+|           |                | 2 Timothy 4:1-8 |
+|           |                | John 21:15-19 |
+| | | |
+| independence-day | Psalm 145 | Deuteronomy 10:17-21 |
+|           | /or/ Psalm 145:1-9 | Hebrews 11:8-16 |
+|           |                | Matthew 5:43-48 |
+| | | |
+| st-mary-magdalene | Psalm 42:1-7 | Judith 9:1, 11-14 |
+|           |                | 2 Corinthians 5:14-18 |
+|           |                | John 20:11-18 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| st-james | Psalm 7:1-10 | Jeremiah 45:1-5 |
+|           |                | Acts 11:27-12:3 |
+|           |                | Matthew 20:20-28 |
+| | | |
+| the-transfiguration | Psalm 99 | Exodus 34:29-35 |
+|           | /or/ Psalm 99:5-9 | 2 Peter 1:13-21 |
+|           |                | Luke 9:28-36 |
+| | | |
+| st-mary-the-virgin | Psalm 34 | Isaiah 61:10-11 |
+|           | /or/ Psalms 34:1-9 | Galatians 4:4-7 |
+|           |                | Luke 1:46-55 |
+| | | |
+| st-bartholomew | Psalm 91 | Deuteronomy 18:15-18 |
+|           | /or/ Psalm 91:1-4 | 1 Corinthians 4:9-15 |
+|           |                | Luke 22:24-30 |
+| | | |
+| holy-cross | Psalm 98 | Isaiah 45:21-25 |
+|           | /or/ Psalm 98:1-4 | Philippians 2:5-11 |
+|           |                | John 12:31-36 |
+| | | |
+| st-matthew | Psalm 119:33-40 | Proverbs 3:1-6 |
+|           |                | 2 Timothy 3:14-17 |
+|           |                | Matthew 9:9-13 |
+| | | |
+| st-michael | Psalm 103 | Genesis 28:10-17 |
+|           | /or/ Psalm 103:19-22 | Revelation 12:7-12 |
+|           |                | John 1:47-51 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| st-luke | Psalm 147 | Ecclesiasticus 38:1-4, 6-10, 12-14 |
+|           | /or/ Psalm 147:1-7 | 2 Timothy 4:5-13 |
+|           |                | Luke 4:14-21 |
+| | | |
+| st-james-of-jerusalem | Psalm 1 | Acts 15:12-22 |
+|           |                | 1 Corinthians 15:1-11 |
+|           |                | Matthew 13:54-58 |
+| | | |
+| ss-simon-and-jude | Psalm 119:89-96 | Deuteronomy 32:1-4 |
+|           |                | Ephesians 2:13-22 |
+|           |                | John 15:17-27 |
+| | | |
+| all-saints-day | Psalm 34:1-10, 22 | Revelation 7:9-17 |
+|           |                | 1 John 3:1-3 |
+|           |                | Matthew 5:1-12 |
+| | | |
+| st-andrew | Psalm 19 | Deuteronomy 30:11-14 |
+|           | /or/ Psalm 19:1-6 | Romans 10:8-18 |
+|           |                | Matthew 4:18-22 |
+| | | |
+| st-thomas | Psalm 126 | Habakkuk 2:1-4 |
+|           |                | Hebrews 10:35-11:1 |
+|           |                | John 20:24-29 |
+| | | |
+| st-stephen | Psalm 31 | Jeremiah 26:1-9, 26:12-15 |
+|           | /or/ Psalm 31:1-5 | Acts 6:8 - 7:2a, 51c-60 |
+|           |                | Matthew 23:24-39 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| st-john | Psalm 92 | Exodus 33:18-23 |
+|           | /or/ Psalm 92:1-4, 11-14 | 1 John 1:1-9 |
+|           |                | John 21:19-24 |
+| | | |
+| holy-innocents | Psalm 124 | Jeremiah 31:15-17 |
+|           |                | Revelation 21:1-7 |
+|           |                | Matthew 2:13-18 |
+| | | |
+| thanksgiving-day | Psalm 65 | Deuteronomy 8:7-18 |
+|           |                | 2 Corinthians 9:6-15 |
+|           |                | Luke 17:11-19 |
+| | | |
+
+
+*** Year B
+| first-advent | Psalm 80:1-7, 17-18 | Isaiah 64:1-9 |
+|           |                | 1 Corinthians 1:3-9 |
+|           |                | Mark 13:24-37 |
+| | | |
+| second-advent | Psalm 85:1-2, 8-13 | Isaiah 40:1-11 |
+|           |                | 2 Peter 3:8-15 |
+|           |                | Mark 1:1-8 |
+| | | |
+| third-advent | Psalm 126 | Isaiah 61:1-4, 61:8-11 |
+|           | /or/ canticle-15 | 1 Thessalonians 5:16-24 |
+|           |                | John 1:6-8, 1:19-28 |
+| | | |
+| fourth-advent | canticle-15 | 2 Samuel 7:1-11, 16 |
+|           | /or/ Psalm 89:1-4, 19-26 | Romans 16:25-27 |
+|           |                | Luke 1:26-38 |
+| | | |
+| christmas | Psalm 96 | Isaiah 9:2-7 |
+|           |                | Titus 2:11-14 |
+|           |                | Luke 2:1-20 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| 1st-sunday-after-christmas | Psalm 147 | Isaiah 61:10-62:3 |
+|           |                | Galatians 3:23-25;4:4-7 |
+|           |                | John 1:1-18 |
+| | | |
+| holy-name | Psalm 8 | Numbers 6:22-27 |
+|           |                | Galatians 4:4-7 |
+|           |                | Luke 2:15-21 |
+| | | |
+| 2nd-sunday-after-christmas | Psalm 84 | Jeremiah 31:7-14 |
+|           |                | Ephesians 1:3-6,15-19 |
+|           |                | Matthew 2:13-15, 2:19-23 |
+| | | |
+| epiphany | Psalm 72:1-7, 10-14 | Isaiah 60:1-6 |
+|           |                | Ephesians 3:1-12 |
+|           |                | Matthew 2:1-12 |
+| | | |
+| 1st-epiphany | Psalm 29 | Genesis 1:1-5 |
+|           |                | Acts 19:1-7 |
+|           |                | Mark 1:4-11 |
+| | | |
+| 2nd-epiphany | Psalm 139:1-5,12-17 | 1 Samuel 3:1-20 |
+|           |                | 1 Corinthians 6:12-20 |
+|           |                | John 1:43-51 |
+| | | |
+| 3rd-epiphany | Psalm 62:6-14 | Jonah 3:1-5, 10 |
+|           |                | 1 Corinthians 7:29-31 |
+|           |                | Mark 1:14-20 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| 4th-epiphany | Psalm 111 | Deuteronomy 18:15-20 |
+|           |                | 1 Corinthians 8:1-13 |
+|           |                | Mark 1:21-28 |
+| | | |
+| 5th-epiphany | Psalm 147:1-11, 20c | Isaiah 40:21-31 |
+|           |                | 1 Corinthians 9:16-23 |
+|           |                | Mark 1:29-39 |
+| | | |
+| 6th-epiphany | Psalm 30 | 2 Kings 5:1-14 |
+|           |                | 1 Corinthians 9:24-27 |
+|           |                | Mark 1:40-45 |
+| | | |
+| 7th-epiphany | Psalm 41 | Isaiah 43:18-25 |
+|           |                | 2 Corinthians 1:18-22 |
+|           |                | Mark 2:1-12 |
+| | | |
+| 8th-epiphany | Psalm 103:1-13, 22 | Hosea 2:14-20 |
+|           |                | 2 Corinthians 3:1-6 |
+|           |                | Mark 2:13-22 |
+| | | |
+| last-epiphany | Psalm 50:1-6 | 2 Kings 2:1-12 |
+|           |                | 2 Corinthians 4:3-6 |
+|           |                | Mark 9:2-9 |
+| | | |
+| wednesday-last-epiphany | Psalm 103 | Isaiah 58:1-12 |
+|           | /or/ Psalm 103:8-14 | 2 Corinthians 5:20-6:10 |
+|           |                | Matthew 6:1-6, 6:16-21 |
+| | | |
+| 1st-lent | Psalm 25:1-9 | Genesis 9:8-17 |
+|           |                | 1 Peter 3:18-22 |
+|           |                | Mark 1:9-15 |
+| | | |
+| 2nd-lent | Psalm 22:22-30 | Genesis 17:1-7, 17:15-16 |
+|           |                | Romans 4:13-25 |
+|           |                | Mark 8:31-38 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| 3rd-lent | Psalm 19 | Exodus 20:1-17 |
+|           |                | 1 Corinthians 1:18-25 |
+|           |                | John 2:13-22 |
+| | | |
+| 4th-lent | Psalm 107:1-3, 17-22 | Numbers 21:4-9 |
+|           |                | Ephesians 2:1-10 |
+|           |                | John 3:14-21 |
+| | | |
+| 5th-lent | Psalm 51:1-13 | Jeremiah 31:31-34 |
+|           | /or/ Psalm 119:9-16 | Hebrews 5:5-10 |
+|           |                | John 12:20-33 |
+| | | |
+| holy-week | Psalm 31:9-16 | Isaiah 50:4-9 |
+|           |                | Philippians 2:5-11 |
+|           |                | Mark 15:1-47 |
+| | | |
+| monday-holy-week | Psalm 36:5-11 | Isaiah 42:1-9 |
+|           |                | Hebrews 9:11-15 |
+|           |                | John 12:1-11 |
+| | | |
+| tuesday-holy-week | Psalm 71:1-14 | Isaiah 49:1-7 |
+|           |                | 1 Corinthians 1:18-31 |
+|           |                | John 12:20-36 |
+| | | |
+| wednesday-holy-week | Psalm 70 | Isaiah 50:4-9 |
+|           |                | Hebrews 12:1-3 |
+|           |                | John 13:21-32 |
+| | | |
+| thursday-holy-week | Psalm 116:1, 10-17 | Exodus 12:1-14 |
+|           |                | 1 Corinthians 11:23-26 |
+|           |                | John 13:1-17, 13:31-35 |
+| | | |
+| friday-holy-week | Psalm 22 | Isaiah 52:13-53:12 |
+|           |                | Hebrews 10:16-25 |
+|           |                | John 18:1-19:42 |
+| | | |
+| saturday-holy-week | Psalm 31:1-4, 15-16 | Job 14:1-14 |
+|           |                | 1 Peter 4:1-8 |
+|           |                | Matthew 27:57-66 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| easter | Psalm 118:1-2, 14-24 | Acts 10:34-43 |
+|           |                | Colossians 3:1-4 |
+|           |                | /or/ 1 Corinthians 15:1-11 |
+|           |                | /or/ 1 Corinthians 15:1-11 |
+|           |                | John 20:1-18 |
+| | | |
+| monday-easter | Psalm 16:8-11 | Acts 2:14,22b-32 |
+|           | /or/ Psalm 118:19-24 | Matthew 28:9-15 |
+| | | |
+| tuesday-easter | Psalm 33:18-22 | Acts 2:36-41 |
+|           | /or/ Psalm 118:19-24 | John 20:11-18 |
+| | | |
+| wednesday-easter | Psalm 105:1-8 | Acts 3:1-10 |
+|           | /or/ Psalm 118:29-24 | Luke 24:13-35 |
+| | | |
+| thursday-easter | Psalm 8 | Acts 3:11-26 |
+|           | /or/ Psalm 114 | Luke 24:36-48 |
+| | | |
+| friday-easter | Psalm 118:19-24 | Acts 4:1-12 |
+|           | /or/ Psalm 116:1-8 | John 21:1-14 |
+| | | |
+| saturday-easter | Psalm 118:14-18 | Acts 4:13-21 |
+|           | /or/ Psalm 118:19-24 | Mark 16:9-15, 20 |
+| | | |
+| 2nd-easter | Psalm 133 | Acts 4:32-35 |
+|           |                | 1 John 1:1-2:2 |
+|           |                | John 20:19-31 |
+| | | |
+| 3rd-easter | Psalm 4 | Acts 3:12-19 |
+|           |                | 1 John 3:1-7 |
+|           |                | Luke 24:36-48 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| 4th-easter | Psalm 23 | Acts 4:5-12 |
+|           |                | 1 John 3:16-24 |
+|           |                | John 10:11-18 |
+| | | |
+| 5th-easter | Psalm 22:24-30 | Acts 8:26-40 |
+|           |                | 1 John 4:7-21 |
+|           |                | John 15:1-8 |
+| | | |
+| 6th-easter | Psalm 98 | Acts 10:44-48 |
+|           |                | 1 John 5:1-6 |
+|           |                | John 15:9-17 |
+| | | |
+| thursday-6th-easter | Psalm 47 | Acts 1:1-11 |
+|           | /or/ Psalm 93 | Ephesians 1:15-23 |
+|           |                | Luke 24:44-53 |
+| | | |
+| 7th-easter | Psalm 1 | Acts 1:15-17, 1:21-26 |
+|           |                | 1 John 5:9-13 |
+|           |                | John 17:6-19 |
+| | | |
+| pentecost | Psalm 104:25-35, 37 | Acts 2:1-21 |
+|           |                | Romans 8:22-27 |
+|           |                | John 15:26-27, 16:4-15 |
+| | | |
+| trinity-sunday | Psalm 29 | Isaiah 6:1-8 |
+|           | /or/ canticle-13 | Romans 8:12-17 |
+|           |                | John 3:1-17 |
+| | | |
+
+|-----------|----------|--------|
+|Day | OT & Psalms | NT Lessons |
+| proper-1 | 2 Kings 5:1-14 | 1 Corinthians 9:24-27 |
+|           | Psalm 30 | Mark 2:1-12 |
+| | | |
+| proper-2 | Isaiah 43:18-25 | 2 Corinthians 1:18-22 |
+|           | Psalm 41 | Mark 2:1-12 |
+| | | |
+| proper-3 | Hosea 2:14-20 | 2 Corinthians 3:1-6 |
+|           | Psalm 103:1-13, 22 | Mark 2:13-22 |
+| | | |
+
+|-----------|----------|--------|
+|Day | OT & Psalms | NT Lessons |
+| proper-4 | 1 Samuel 3:1-20 | 2 Corinthians 4:5-12 |
+|           | Psalm 139:1-5, 12-17 | Mark 2:23-3:6 |
+|           | Deuteronomy 5:12-15 |                 |
+|           | Psalm 81:1-10 |                 |
+| | | |
+| proper-5 | 1 Samuel 8:4-20,11:14-15 | 2 Corinthians 4:13-5:1 |
+|           | Psalm 138 | Mark 3:20-35 |
+|           | Genesis 3:8-15 |                 |
+|           | Psalm 130 |                 |
+| | | |
+| proper-6 | 1 Samuel 15:34-16:13 | 2 Corinthians 5:6-17 |
+|           | Psalm 20 | Mark 4:26-34 |
+|           | Ezekiel 17:22-24 |                 |
+|           | Psalm 92:1-4, 11-14 |                 |
+| | | |
+| proper-7 | 1 Samuel 17:(1a, 4-11, 19-23), 32-49 | 2 Corinthians 6:1-13 |
+|           | Psalm 9:9-20 | Mark 4:35-41 |
+|           | /or/ Psalm 133 |                 |
+|           | Job 38:1-11 |                 |
+|           | Psalm 107:1-3, 23-32 |                 |
+| | | |
+| proper-8 | 2 Samuel 1:1, 17-27 | 2 Corinthians 8:7-15 |
+|           | Psalm 130 | Mark 5:21-43 |
+|           | Wisdom 1:13-15, 2:23-24 |                 |
+|           | Psalm 30 |                 |
+| | | |
+| proper-9 | 2 Samuel 5:1-5, 5:9-10 | 2 Corinthians 12:2-10 |
+|           | Psalm 48 | Mark 6:1-13 |
+|           | Ezekiel 2:1-5 |                 |
+|           | Psalm 123 |                 |
+| | | |
+
+|-----------|----------|--------|
+|Day | OT & Psalms | NT Lessons |
+| proper-10 | 2 Samuel 6:1-5, 6:12-19 | Ephesians 1:3-14 |
+|           | Psalm 24 | Mark 6:14-29 |
+|           | Amos 7:7-15 |                 |
+|           | Psalm 85:8-13 |                 |
+| | | |
+| proper-11 | 2 Samuel 7:1-14 | Ephesians 2:11-22 |
+|           | Psalm 89:20-37 | Mark 6:30-34, 6:53-56 |
+|           | Jeremiah 23:1-6 |                 |
+|           | Psalm 23 |                 |
+| | | |
+| proper-12 | 2 Samuel 11:1-15 | Ephesians 3:14-21 |
+|           | Psalm 14 | John 6:1-21 |
+|           | 2 Kings 4:42-44 |                 |
+|           | Psalm 145:10-19 |                 |
+| | | |
+| proper-13 | 2 Samuel 11:26-12:13 | Ephesians 4:1-16 |
+|           | Psalm 51:1-13 | John 6:24-35 |
+|           | Exodus 16:2-4, 16:9-15 |                 |
+|           | Psalm 78:23-29 |                 |
+| | | |
+| proper-14 | 2 Samuel 18:5-9, 15, 31-33 | Ephesians 4:25-5:2 |
+|           | Psalm 130 | John 6:35, 41-51 |
+|           | 1 Kings 19:4-8 |                 |
+|           | Psalm 34:1-8 |                 |
+| | | |
+| proper-15 | 1 Kings 2:10-12; 3:3-14 | Ephesians 5:15-20 |
+|           | Psalm 111 | John 6:51-58 |
+|           | Proverbs 9:1-6 |                 |
+|           | Psalm 34:9-14 |                 |
+| | | |
+| proper-16 | 1 Kings 8:(1,6,10-11), 22-30, 41-43 | Ephesians 6:10-20 |
+|           | Psalm 84 | John 6:56-69 |
+|           | Joshua 24:1-2, 24:14-18 |                 |
+|           | Psalm 34:15-22 |                 |
+| | | |
+
+|-----------|----------|--------|
+|Day | OT & Psalms | NT Lessons |
+| proper-17 | Song of Solomon 2:8-13 | James 1:17-27 |
+|           | Psalm 45:1-2, 6-9 | Mark 7:1-8, 14-15, 21-23 |
+|           | Deuteronomy 4:1-2, 6-9 |                 |
+|           | Psalm 15 |                 |
+| | | |
+| proper-18 | Proverbs 22:1-2, 8-9, 22-23 | James 2:1-17 |
+|           | Psalm 125 | Mark 7:24-37 |
+|           | Isaiah 35:4-7 |                 |
+|           | Psalm 146 |                 |
+| | | |
+| proper-19 | Proverbs 1:20-33 | James 3:1-12 |
+|           | Psalm 19 | Mark 8:27-38 |
+|           | Isaiah 50:4-9 |                 |
+|           | Psalm 116:1-8 |                 |
+| | | |
+| proper-20 | Proverbs 31:10-31 | James 3:13-4:3, 4:7-8 |
+|           | Psalm 1 | Mark 9:30-37 |
+|           | Wisdom 1:16-2:1, 12-22 |                 |
+|           | Psalm 54 |                 |
+| | | |
+| proper-21 | Esther 7:1-6, 9-10; 9:20-22 | James 5:13-20 |
+|           | Psalm 124 | Mark 9:38-50 |
+|           | Numbers 11:4-6, 10-16, 24-29 |                 |
+|           | Psalm 19:7-14 |                 |
+| | | |
+| proper-22 | Job 1:1, 2:1-10 | Hebrews 1:1-4, 2:5-12 |
+|           | Psalm 26 | Mark 10:2-16 |
+|           | Genesis 2:18-24 |                 |
+|           | Psalm 8 |                 |
+| | | |
+| proper-23 | Job 23:1-9, 23:16-17 | Hebrews 4:12-16 |
+|           | Psalm 22:1-15 | Mark 10:17-31 |
+|           | Amos 5:6-7, 5:10-15 |                 |
+|           | Psalm 90:12-17 |                 |
+| | | |
+
+|-----------|----------|--------|
+|Day | OT & Psalms | NT Lessons |
+| proper-24 | Job 38:1-7, 38:34-41 | Hebrews 5:1-10 |
+|           | Psalm 104:1-9, 27, 37b | Mark 10:35-45 |
+|           | Isaiah 53:4-12 |                 |
+|           | Psalm 91:9-16 |                 |
+| | | |
+| proper-25 | Job 42:1-6, 42:10-17 | Hebrews 7:23-28 |
+|           | Psalm 34:1-8, (19-22) | Mark 10:46-52 |
+|           | Jeremiah 31:7-9 |                 |
+|           | Psalm 126 |                 |
+| | | |
+| proper-26 | Ruth 1:1-18 | Hebrews 9:11-14 |
+|           | Psalm 146 | Mark 12:28-34 |
+|           | Deuteronomy 6:1-9 |                 |
+|           | Psalm 119:1-8 |                 |
+| | | |
+| proper-27 | Ruth 3:1-5; 4:13-17 | Hebrews 9:24-28 |
+|           | Psalm 127 | Mark 12:38-44 |
+|           | 1 Kings 17:8-16 |                 |
+|           | Psalm 146 |                 |
+| | | |
+| proper-28 | 1 Samuel 1:4-20 | Hebrews 10:11-25 |
+|           | 1 Samuel 2:1-10 | Mark 13:1-8 |
+|           | Daniel 12:1-3 |                 |
+|           | Psalm 16 |                 |
+| | | |
+| proper-29 | 2 Samuel 23:1-7 | Revelation 1:4-8 |
+|           | Psalm 132:1-13, (14-19) | John 18:33-37 |
+|           | Daniel 7:9-10, 7:13-14 |                 |
+|           | Psalm 93 |                 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| confession-of-st-peter | Psalm 23 | Acts 4:8-13 |
+|           |                | 1 Peter 5:1-4 |
+|           |                | Matthew 16:13-19 |
+| | | |
+| conversion-of-st-paul | Psalm 67 | Acts 26:9-21 |
+|           |                | Galatians 1:11-24 |
+|           |                | Matthew 10:16-22 |
+| | | |
+| the-presentation | Psalm 84 | Malachi 3:1-4 |
+|           | /or/ Psalm 24:7-10 | Hebrews 2:14-18 |
+|           |                | Luke 2:22-40 |
+| | | |
+| st-matthias | Psalm 15 | Acts 1:15-26 |
+|           |                | Philippians 3:13-21 |
+|           |                | John 15:1, 6-16 |
+| | | |
+| st-joseph | Psalm 89:1-29 | 2 Samuel 7:4, 8-16 |
+|           | /or/ Psalm 89:1-4, 26-29 | Romans 4:13-18 |
+|           |                | Luke 2:41-52 |
+| | | |
+| annunciation | Psalm 45 | Isaiah 7:10-14 |
+|           | /or/ Canticle 15 | Hebrews 10:4-10 |
+|           |                | Luke 1:26-38 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| st-mark | Psalm 2 | Isaiah 52:7-10 |
+|           | /or/ Psalm 2:7-10 | Ephesians 4:7-8, 4:11-16 |
+|           |                | Mark 1:1-15 |
+| | | |
+| ss-philip-and-james | Psalm 119:33-40 | Isaiah 30:18-21 |
+|           |                | 2 Corinthians 4:1-6 |
+|           |                | John 14:6-14 |
+| | | |
+| the-visitation | Psalm 113 | 1 Samuel 2:1-10 |
+|           |                | Romans 12:9-16 |
+|           |                | Luke 1:39-57 |
+| | | |
+| st-barnabas | Psalm 112 | Isaiah 42:5-12 |
+|           |                | Acts 11:19-30; 13:1-3 |
+|           |                | Matthew 10:7-16 |
+| | | |
+| nativity-of-st-john-the-baptist | Psalm 85 | Isaiah 40:1-11 |
+|           | /or/ Psalm 85:7-13 | Acts 13:14-26 |
+|           |                | Luke 1:57-80 |
+| | | |
+| ss-peter-and-paul | Psalm 87 | Ezekiel 34:11-16 |
+|           |                | 2 Timothy 4:1-8 |
+|           |                | John 21:15-19 |
+| | | |
+| independence-day | Psalm 145 | Deuteronomy 10:17-21 |
+|           | /or/ Psalm 145:1-9 | Hebrews 11:8-16 |
+|           |                | Matthew 5:43-48 |
+| | | |
+| st-mary-magdalene | Psalm 42:1-7 | Judith 9:1, 11-14 |
+|           |                | 2 Corinthians 5:14-18 |
+|           |                | John 20:11-18 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| st-james | Psalm 7:1-10 | Jeremiah 45:1-5 |
+|           |                | Acts 11:27-12:3 |
+|           |                | Matthew 20:20-28 |
+| | | |
+| the-transfiguration | Psalm 99 | Exodus 34:29-35 |
+|           | /or/ Psalm 99:5-9 | 2 Peter 1:13-21 |
+|           |                | Luke 9:28-36 |
+| | | |
+| st-mary-the-virgin | Psalm 34 | Isaiah 61:10-11 |
+|           | /or/ Psalms 34:1-9 | Galatians 4:4-7 |
+|           |                | Luke 1:46-55 |
+| | | |
+| st-bartholomew | Psalm 91 | Deuteronomy 18:15-18 |
+|           | /or/ Psalm 91:1-4 | 1 Corinthians 4:9-15 |
+|           |                | Luke 22:24-30 |
+| | | |
+| holy-cross | Psalm 98 | Isaiah 45:21-25 |
+|           | /or/ Psalm 98:1-4 | Philippians 2:5-11 |
+|           |                | John 12:31-36 |
+| | | |
+| st-matthew | Psalm 119:33-40 | Proverbs 3:1-6 |
+|           |                | 2 Timothy 3:14-17 |
+|           |                | Matthew 9:9-13 |
+| | | |
+| st-michael | Psalm 103 | Genesis 28:10-17 |
+|           | /or/ Psalm 103:19-22 | Revelation 12:7-12 |
+|           |                | John 1:47-51 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| st-luke | Psalm 147 | Ecclesiasticus 38:1-4, 6-10, 12-14 |
+|           | /or/ Psalm 147:1-7 | 2 Timothy 4:5-13 |
+|           |                | Luke 4:14-21 |
+| | | |
+| st-james-of-jerusalem | Psalm 1 | Acts 15:12-22 |
+|           |                | 1 Corinthians 15:1-11 |
+|           |                | Matthew 13:54-58 |
+| | | |
+| ss-simon-and-jude | Psalm 119:89-96 | Deuteronomy 32:1-4 |
+|           |                | Ephesians 2:13-22 |
+|           |                | John 15:17-27 |
+| | | |
+| all-saints-day | Psalm 24 | Wisdom 3:1-9 |
+|           |                | /or/ Isaiah 25:6-9 |
+|           |                | Revelation 21:1-6 |
+|           |                | John 11:32-44 |
+| | | |
+| st-andrew | Psalm 19 | Deuteronomy 30:11-14 |
+|           | /or/ Psalm 19:1-6 | Romans 10:8-18 |
+|           |                | Matthew 4:18-22 |
+| | | |
+| st-thomas | Psalm 126 | Habakkuk 2:1-4 |
+|           |                | Hebrews 10:35-11:1 |
+|           |                | John 20:24-29 |
+| | | |
+| st-stephen | Psalm 31 | Jeremiah 26:1-9, 26:12-15 |
+|           | /or/ Psalm 31:1-5 | Acts 6:8 - 7:2a, 51c-60 |
+|           |                | Matthew 23:24-39 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| st-john | Psalm 92 | Exodus 33:18-23 |
+|           | /or/ Psalm 92:1-4, 11-14 | 1 John 1:1-9 |
+|           |                | John 21:19-24 |
+| | | |
+| holy-innocents | Psalm 124 | Jeremiah 31:15-17 |
+|           |                | Revelation 21:1-7 |
+|           |                | Matthew 2:13-18 |
+| | | |
+| thanksgiving-day | Psalm 126 | Joel 2:21-27 |
+|           |                | 1 Timothy 2:1-7 |
+|           |                | Matthew 6:25-33 |
+| | | |
+
+
+*** Year C
+| first-advent | Psalm 25:1-9 | Jeremiah 33:14-16 |
+|           |                | 1 Thessalonians 3:9-13 |
+|           |                | Luke 21:25-36 |
+| | | |
+| second-advent | Canticle 16 | Malachi 3:1-4 |
+|           |                | /or/ Baruch 5:1-9 |
+|           |                | Philippians 1:3-11 |
+|           |                | Luke 3:1-6 |
+| | | |
+| third-advent | Canticle 9 | Zephaniah 3:14-20 |
+|           |                | Philippians 4:4-7 |
+|           |                | Luke 3:7-18 |
+| | | |
+| fourth-advent | Canticle 15 | Micah 5:2-5 |
+|           | /or/ Psalm 80:1-7 | Hebrews 10:5-10 |
+|           |                | Luke 1:39-55 |
+| | | |
+| christmas | Psalm 96 | Isaiah 9:2-7 |
+|           |                | Titus 2:11-14 |
+|           |                | Luke 2:1-20 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| 1st-sunday-after-christmas | Psalm 147 | Isaiah 61:10-62:3 |
+|           |                | Galatians 3:23-25;4:4-7 |
+|           |                | John 1:1-18 |
+| | | |
+| holy-name | Psalm 8 | Numbers 6:22-27 |
+|           |                | Galatians 4:4-7 |
+|           |                | Luke 2:15-21 |
+| | | |
+| 2nd-sunday-after-christmas | Psalm 84 | Jeremiah 31:7-14 |
+|           |                | Ephesians 1:3-6,15-19 |
+|           |                | Matthew 2:13-15, 2:19-23 |
+| | | |
+| epiphany | Psalm 72:1-7, 10-14 | Isaiah 60:1-6 |
+|           |                | Ephesians 3:1-12 |
+|           |                | Matthew 2:1-12 |
+| | | |
+| 1st-epiphany | Psalm 29 | Isaiah 43:1-7 |
+|           |                | Acts 8:14-17 |
+|           |                | Luke 3:15-17, 3:21-22 |
+| | | |
+| 2nd-epiphany | Psalm 36:5-10 | Isaiah 62:1-5 |
+|           |                | 1 Corinthians 12:1-11 |
+|           |                | John 2:1-11 |
+| | | |
+| 3rd-epiphany | Psalm 19 | Nehemiah 8:1-3, 5-6, 8-10 |
+|           |                | 1 Corinthians 12:12-31 |
+|           |                | Luke 4:14-21 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| 4th-epiphany | Psalm 71:1-6 | Jeremiah 1:4-10 |
+|           |                | 1 Corinthians 13:1-13 |
+|           |                | Luke 4:21-30 |
+| | | |
+| 5th-epiphany | Psalm 138 | Isaiah 6:1-13 |
+|           |                | 1 Corinthians 15:1-11 |
+|           |                | Luke 5:1-11 |
+| | | |
+| 6th-epiphany | Psalm 1 | Jeremiah 17:5-10 |
+|           |                | 1 Corinthians 15:12-20 |
+|           |                | Luke 6:17-26 |
+| | | |
+| 7th-epiphany | Psalm 37:1-12, 41-42 | Genesis 45:3-11, 15 |
+|           |                | 1 Corinthians 15:35-38, 15:42-50 |
+|           |                | Luke 6:27-38 |
+| | | |
+| 8th-epiphany | Psalm 92:1-4, 11-14 | Ecclesiasticus 27:4-7 |
+|           |                | /or/ Isaiah 55:10-13 |
+|           |                | 1 Corinthians 15:51-58 |
+|           |                | Luke 6:39-49 |
+| | | |
+| last-epiphany | Psalm 99 | Exodus 34:29-35 |
+|           |                | 2 Corinthians 3:12-4:2 |
+|           |                | Luke 9:28-43 |
+| | | |
+| wednesday-last-epiphany | Psalm 103 | Isaiah 58:1-12 |
+|           | /or/ Psalm 103:8-14 | 2 Corinthians 5:20-6:10 |
+|           |                | Matthew 6:1-6, 6:16-21 |
+| | | |
+| 1st-lent | Psalm 91:1-2, 9-16 | Deuteronomy 26:1-11 |
+|           |                | Romans 10:8-13 |
+|           |                | Luke 4:1-13 |
+| | | |
+| 2nd-lent | Psalm 27 | Genesis 15:1-12, 15:17-18 |
+|           |                | Philippians 3:17-4:1 |
+|           |                | Luke 13:31-35 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| 3rd-lent | Psalm 63:1-8 | Exodus 3:1-15 |
+|           |                | 1 Corinthians 10:1-13 |
+|           |                | Luke 13:1-9 |
+| | | |
+| 4th-lent | Psalm 32 | Joshua 5:9-12 |
+|           |                | 2 Corinthians 5:16-21 |
+|           |                | Luke 15:1-3, 15:11-32 |
+| | | |
+| 5th-lent | Psalm 126 | Isaiah 43:16-21 |
+|           |                | Philippians 3:4-14 |
+|           |                | John 12:1-8 |
+| | | |
+| holy-week | Psalm 31:9-16 | Isaiah 50:4-9 |
+|           |                | Philippians 2:5-11 |
+|           |                | Luke 22:14-23:56 |
+| | | |
+| monday-holy-week | Psalm 36:5-11 | Isaiah 42:1-9 |
+|           |                | Hebrews 9:11-15 |
+|           |                | John 12:1-11 |
+| | | |
+| tuesday-holy-week | Psalm 71:1-14 | Isaiah 49:1-7 |
+|           |                | 1 Corinthians 1:18-31 |
+|           |                | John 12:20-36 |
+| | | |
+| wednesday-holy-week | Psalm 70 | Isaiah 50:4-9 |
+|           |                | Hebrews 12:1-3 |
+|           |                | John 13:21-32 |
+| | | |
+| thursday-holy-week | Psalm 116:1, 10-17 | Exodus 12:1-14 |
+|           |                | 1 Corinthians 11:23-26 |
+|           |                | John 13:1-17, 13:31-35 |
+| | | |
+| friday-holy-week | Psalm 22 | Isaiah 52:13-53:12 |
+|           |                | Hebrews 10:16-25 |
+|           |                | John 18:1-19:42 |
+| | | |
+| saturday-holy-week | Psalm 31:1-4, 15-16 | Job 14:1-14 |
+|           |                | 1 Peter 4:1-8 |
+|           |                | Matthew 27:57-66 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| easter | Psalm 118:1-2, 14-24 | Acts 10:34-43 |
+|           |                | /or/ Isaiah 65:17-25 |
+|           |                | 1 Corinthians 15:19-26 |
+|           |                | John 20:1-18 |
+| | | |
+| monday-easter | Psalm 16:8-11 | Acts 2:14,22b-32 |
+|           | /or/ Psalm 118:19-24 | Matthew 28:9-15 |
+| | | |
+| tuesday-easter | Psalm 33:18-22 | Acts 2:36-41 |
+|           | /or/ Psalm 118:19-24 | John 20:11-18 |
+| | | |
+| wednesday-easter | Psalm 105:1-8 | Acts 3:1-10 |
+|           | /or/ Psalm 118:29-24 | Luke 24:13-35 |
+| | | |
+| thursday-easter | Psalm 8 | Acts 3:11-26 |
+|           | /or/ Psalm 114 | Luke 24:36-48 |
+| | | |
+| friday-easter | Psalm 118:19-24 | Acts 4:1-12 |
+|           | /or/ Psalm 116:1-8 | John 21:1-14 |
+| | | |
+| saturday-easter | Psalm 118:14-18 | Acts 4:13-21 |
+|           | /or/ Psalm 118:19-24 | Mark 16:9-15, 20 |
+| | | |
+| 2nd-easter | Psalm 118:14-29 | Acts 5:27-32 |
+|           | /or/ Psalm 150 | Revelation 1:4-8 |
+|           |                | John 20:19-31 |
+| | | |
+| 3rd-easter | Psalm 30 | Acts 9:1-20 |
+|           |                | Revelation 5:11-14 |
+|           |                | John 21:1-19 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| 4th-easter | Psalm 23 | Acts 9:36-43 |
+|           |                | Revelation 7:9-17 |
+|           |                | John 10:22-30 |
+| | | |
+| 5th-easter | Psalm 148 | Acts 11:1-18 |
+|           |                | Revelation 21:1-6 |
+|           |                | John 13:31-35 |
+| | | |
+| 6th-easter | Psalm 67 | Acts 16:9-15 |
+|           |                | Revelation 21:10, 22-22:5 |
+|           |                | John 14:23-29 |
+| | | |
+| thursday-6th-easter | Psalm 47 | Acts 1:1-11 |
+|           | /or/ Psalm 93 | Ephesians 1:15-23 |
+|           |                | Luke 24:44-53 |
+| | | |
+| 7th-easter | Psalm 97 | Acts 16:16-34 |
+|           |                | Revelation 22:12-14, 16-17, 20-21 |
+|           |                | John 17:20-26 |
+| | | |
+| pentecost | Psalm 104:24-35, 37 | Acts 2:1-21 |
+|           |                | /or/ Genesis 11:1-9 |
+|           |                | Acts 2:1-21 |
+|           |                | John 14:8-17, 14:25-27 |
+| | | |
+| trinity-sunday | Psalm 8 | Proverbs 8:1-4, 8:22-31 |
+|           | /or/ canticle-13 | Romans 5:1-5 |
+|           |                | John 16:12-15 |
+| | | |
+
+|-----------|----------|--------|
+|Day | OT & Psalms | NT Lessons |
+| proper-1 | Jeremiah 17:5-10 | 1 Corinthians 15:12-20 |
+|           | Psalm 1 | Luke 6:17-26 |
+| | | |
+| proper-2 | Genesis 45:3-11, 15 | 1 Corinthians 15:35-38, 15:42-50 |
+|           | Psalm 37:1-12, 41-42 | Luke 6:27-38 |
+| | | |
+| proper-3 | Ecclesiasticus 27:4-7 | 1 Corinthians 15:51-58 |
+|           | /or/ Isaiah 55:10-13 | Luke 6:39-49 |
+|           | Psalm 92:1-4, 11-14 |                 |
+| | | |
+
+|-----------|----------|--------|
+|Day | OT & Psalms | NT Lessons |
+| proper-4 | 1 Kings 18:20-39 | Galatians 1:1-12 |
+|           | Psalm 96 | Luke 7:1-10 |
+|           | 1 Kings 8:22-23, 8:41-43 |                 |
+|           | Psalm 96:1-9 |                 |
+| | | |
+| proper-5 | 1 Kings 17:8-24 | Galatians 1:11-24 |
+|           | Psalm 146 | Luke 7:11-17 |
+|           | 1 Kings 17:17-24 |                 |
+|           | Psalm 30 |                 |
+| | | |
+| proper-6 | 1 Kings 21:1-21 | Galatians 2:15-21 |
+|           | Psalm 5:1-8 | Luke 7:36-8:3 |
+|           | 2 Samuel 11:26-12:10, 13-15 |                 |
+|           | Psalm 32 |                 |
+| | | |
+| proper-7 | 1 Kings 19:1-15 | Galatians 3:23-29 |
+|           | Psalm 42 | Luke 8:26-39 |
+|           | /or/ Psalm 43 |                 |
+|           | Isaiah 65:1-9 |                 |
+|           | Psalm 22:18-27 |                 |
+| | | |
+| proper-8 | 2 Kings 2:1-2, 2:6-14 | Galatians 5:1, 13-25 |
+|           | Psalm 77:1-2, 11-20 | Luke 9:51-62 |
+|           | 1 Kings 19:15-16, 19:19-21 |                 |
+|           | Psalm 16 |                 |
+| | | |
+| proper-9 | 2 Kings 5:1-14 | Galatians 6:1-16 |
+|           | Psalm 30 | Luke 10:1-11, 10:16-20 |
+|           | Isaiah 66:10-14 |                 |
+|           | Psalm 66:1-8 |                 |
+| | | |
+
+|-----------|----------|--------|
+|Day | OT & Psalms | NT Lessons |
+| proper-10 | Amos 7:7-17 | Colossians 1:1-14 |
+|           | Psalm 82 | Luke 10:25-37 |
+|           | Deuteronomy 30:9-14 |                 |
+|           | Psalm 25:1-9 |                 |
+| | | |
+| proper-11 | Amos 8:1-12 | Colossians 1:15-28 |
+|           | Psalm 52 | Luke 10:38-42 |
+|           | Genesis 18:1-10 |                 |
+|           | Psalm 15 |                 |
+| | | |
+| proper-12 | Hosea 1:2-10 | Colossians 2:6-19 |
+|           | Psalm 85 | Luke 11:1-13 |
+|           | Genesis 18:20-32 |                 |
+|           | Psalm 138 |                 |
+| | | |
+| proper-13 | Hosea 11:1-11 | Colossians 3:1-11 |
+|           | Psalm 107:1-9, 43 | Luke 12:13-21 |
+|           | Ecclesiastes 1:2, 12-14; 2:18-23 |                 |
+|           | Psalm 49:1-11 |                 |
+| | | |
+| proper-14 | Isaiah 1:1, 10-20 | Hebrews 11:1-3, 11:8-16 |
+|           | Psalm 50:1-8, 23-24 | Luke 12:32-40 |
+|           | Genesis 15:1-6 |                 |
+|           | Psalm 33:12-22 |                 |
+| | | |
+| proper-15 | Isaiah 5:1-7 | Hebrews 11:29-12:2 |
+|           | Psalm 80:1-2, 8-18 | Luke 12:49-56 |
+|           | Jeremiah 23:23-29 |                 |
+|           | Psalm 82 |                 |
+| | | |
+| proper-16 | Jeremiah 1:4-10 | Hebrews 12:18-29 |
+|           | Psalm 71:1-6 | Luke 13:10-17 |
+|           | Isaiah 58:9-14 |                 |
+|           | Psalm 103:1-8 |                 |
+| | | |
+
+|-----------|----------|--------|
+|Day | OT & Psalms | NT Lessons |
+| proper-17 | Jeremiah 2:4-13 | Hebrews 13:1-8, 13:15-16 |
+|           | Psalm 81:1, 10-16 | Luke 14:1, 7-14 |
+|           | Ecclesiasticus 10:12-18 |                 |
+|           | /or/ Proverbs 25:6-7 |                 |
+|           | Psalm 112 |                 |
+| | | |
+| proper-18 | Jeremiah 18:1-11 | Philemon 1:1-21 |
+|           | Psalm 139:1-5, 12-17 | Luke 14:25-33 |
+|           | Deuteronomy 30:15-20 |                 |
+|           | Psalm 1 |                 |
+| | | |
+| proper-19 | Jeremiah 4:11-12, 4:22-28 | 1 Timothy 1:12-17 |
+|           | Psalm 14 | Luke 15:1-10 |
+|           | Exodus 32:7-14 |                 |
+|           | Psalm 51:1-11 |                 |
+| | | |
+| proper-20 | Jeremiah 8:18-9:1 | 1 Timothy 2:1-7 |
+|           | Psalm 79:1-9 | Luke 16:1-13 |
+|           | Amos 8:4-7 |                 |
+|           | Psalm 113 |                 |
+| | | |
+| proper-21 | Jeremiah 32:1-3, 32:6-15 | 1 Timothy 6:6-19 |
+|           | Psalm 91:1-6, 14-16 | Luke 16:19-31 |
+|           | Amos 6:1, 4-7 |                 |
+|           | Psalm 146 |                 |
+| | | |
+| proper-22 | Lamentations 1:1-6 | 2 Timothy 1:1-14 |
+|           | Lamentations 3:19-26 | Luke 17:5-10 |
+|           | Habakkuk 1:1-4, 2:1-4 |                 |
+|           | Psalm 37:1-10 |                 |
+| | | |
+| proper-23 | Jeremiah 29:1, 4-7 | 2 Timothy 2:8-15 |
+|           | Psalm 66:1-11 | Luke 17:11-19 |
+|           | 2 Kings 5:1-3, 5:7-15 |                 |
+|           | Psalm 111 |                 |
+| | | |
+
+|-----------|----------|--------|
+|Day | OT & Psalms | NT Lessons |
+| proper-24 | Jeremiah 31:27-34 | 2 Timothy 3:14-4:5 |
+|           | Psalm 119:97-104 | Luke 18:1-8 |
+|           | Genesis 32:22-31 |                 |
+|           | Psalm 121 |                 |
+| | | |
+| proper-25 | Joel 2:23-32 | 2 Timothy 4:6-8, 4:16-18 |
+|           | Psalm 65 | Luke 18:9-14 |
+|           | Ecclesiasticus 35:12-17 |                 |
+|           | /or/ Jeremiah 14:7-10, 14:19-22 |                 |
+|           | Psalm 84:1-6 |                 |
+| | | |
+| proper-26 | Habakkuk 1:1-4; 2:1-4 | 2 Thessalonians 1:1-4, 1:11-12 |
+|           | Psalm 119:137-144 | Luke 19:1-10 |
+|           | Isaiah 1:10-18 |                 |
+|           | Psalm 32:1-8 |                 |
+| | | |
+| proper-27 | Haggai 1:15-2:9 | 2 Thessalonians 2:1-5, 2:13-17 |
+|           | Psalm 145:1-5, 17-22 | Luke 20:27-38 |
+|           | /or/ Psalm 98 |                 |
+|           | Job 19:23-27 |                 |
+|           | Psalm 17:1-9 |                 |
+| | | |
+| proper-28 | Isaiah 65:17-25 | 2 Thessalonians 3:6-13 |
+|           | canticle-9 | Luke 21:5-19 |
+|           | Malachi 4:1-2 |                 |
+|           | Psalm 98 |                 |
+| | | |
+| proper-29 | Jeremiah 23:1-6 | Colossians 1:11-20 |
+|           | canticle-16 | Luke 23:33-43 |
+|           | Jeremiah 23:1-6 |                 |
+|           | Psalm 46 |                 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| confession-of-st-peter | Psalm 23 | Acts 4:8-13 |
+|           |                | 1 Peter 5:1-4 |
+|           |                | Matthew 16:13-19 |
+| | | |
+| conversion-of-st-paul | Psalm 67 | Acts 26:9-21 |
+|           |                | Galatians 1:11-24 |
+|           |                | Matthew 10:16-22 |
+| | | |
+| the-presentation | Psalm 84 | Malachi 3:1-4 |
+|           | /or/ Psalm 24:7-10 | Hebrews 2:14-18 |
+|           |                | Luke 2:22-40 |
+| | | |
+| st-matthias | Psalm 15 | Acts 1:15-26 |
+|           |                | Philippians 3:13-21 |
+|           |                | John 15:1, 6-16 |
+| | | |
+| st-joseph | Psalm 89:1-29 | 2 Samuel 7:4, 8-16 |
+|           | /or/ Psalm 89:1-4, 26-29 | Romans 4:13-18 |
+|           |                | Luke 2:41-52 |
+| | | |
+| annunciation | Psalm 45 | Isaiah 7:10-14 |
+|           | /or/ Canticle 15 | Hebrews 10:4-10 |
+|           |                | Luke 1:26-38 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| st-mark | Psalm 2 | Isaiah 52:7-10 |
+|           | /or/ Psalm 2:7-10 | Ephesians 4:7-8, 4:11-16 |
+|           |                | Mark 1:1-15 |
+| | | |
+| ss-philip-and-james | Psalm 119:33-40 | Isaiah 30:18-21 |
+|           |                | 2 Corinthians 4:1-6 |
+|           |                | John 14:6-14 |
+| | | |
+| the-visitation | Psalm 113 | 1 Samuel 2:1-10 |
+|           |                | Romans 12:9-16 |
+|           |                | Luke 1:39-57 |
+| | | |
+| st-barnabas | Psalm 112 | Isaiah 42:5-12 |
+|           |                | Acts 11:19-30; 13:1-3 |
+|           |                | Matthew 10:7-16 |
+| | | |
+| nativity-of-st-john-the-baptist | Psalm 85 | Isaiah 40:1-11 |
+|           | /or/ Psalm 85:7-13 | Acts 13:14-26 |
+|           |                | Luke 1:57-80 |
+| | | |
+| ss-peter-and-paul | Psalm 87 | Ezekiel 34:11-16 |
+|           |                | 2 Timothy 4:1-8 |
+|           |                | John 21:15-19 |
+| | | |
+| independence-day | Psalm 145 | Deuteronomy 10:17-21 |
+|           | /or/ Psalm 145:1-9 | Hebrews 11:8-16 |
+|           |                | Matthew 5:43-48 |
+| | | |
+| st-mary-magdalene | Psalm 42:1-7 | Judith 9:1, 11-14 |
+|           |                | 2 Corinthians 5:14-18 |
+|           |                | John 20:11-18 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| st-james | Psalm 7:1-10 | Jeremiah 45:1-5 |
+|           |                | Acts 11:27-12:3 |
+|           |                | Matthew 20:20-28 |
+| | | |
+| the-transfiguration | Psalm 99 | Exodus 34:29-35 |
+|           | /or/ Psalm 99:5-9 | 2 Peter 1:13-21 |
+|           |                | Luke 9:28-36 |
+| | | |
+| st-mary-the-virgin | Psalm 34 | Isaiah 61:10-11 |
+|           | /or/ Psalms 34:1-9 | Galatians 4:4-7 |
+|           |                | Luke 1:46-55 |
+| | | |
+| st-bartholomew | Psalm 91 | Deuteronomy 18:15-18 |
+|           | /or/ Psalm 91:1-4 | 1 Corinthians 4:9-15 |
+|           |                | Luke 22:24-30 |
+| | | |
+| holy-cross | Psalm 98 | Isaiah 45:21-25 |
+|           | /or/ Psalm 98:1-4 | Philippians 2:5-11 |
+|           |                | John 12:31-36 |
+| | | |
+| st-matthew | Psalm 119:33-40 | Proverbs 3:1-6 |
+|           |                | 2 Timothy 3:14-17 |
+|           |                | Matthew 9:9-13 |
+| | | |
+| st-michael | Psalm 103 | Genesis 28:10-17 |
+|           | /or/ Psalm 103:19-22 | Revelation 12:7-12 |
+|           |                | John 1:47-51 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| st-luke | Psalm 147 | Ecclesiasticus 38:1-4, 6-10, 12-14 |
+|           | /or/ Psalm 147:1-7 | 2 Timothy 4:5-13 |
+|           |                | Luke 4:14-21 |
+| | | |
+| st-james-of-jerusalem | Psalm 1 | Acts 15:12-22 |
+|           |                | 1 Corinthians 15:1-11 |
+|           |                | Matthew 13:54-58 |
+| | | |
+| ss-simon-and-jude | Psalm 119:89-96 | Deuteronomy 32:1-4 |
+|           |                | Ephesians 2:13-22 |
+|           |                | John 15:17-27 |
+| | | |
+| all-saints-day | Psalm 149 | Daniel 7:1-3, 7:15-18 |
+|           |                | Ephesians 1:11-23 |
+|           |                | Luke 6:20-31 |
+| | | |
+| st-andrew | Psalm 19 | Deuteronomy 30:11-14 |
+|           | /or/ Psalm 19:1-6 | Romans 10:8-18 |
+|           |                | Matthew 4:18-22 |
+| | | |
+| st-thomas | Psalm 126 | Habakkuk 2:1-4 |
+|           |                | Hebrews 10:35-11:1 |
+|           |                | John 20:24-29 |
+| | | |
+| st-stephen | Psalm 31 | Jeremiah 26:1-9, 26:12-15 |
+|           | /or/ Psalm 31:1-5 | Acts 6:8 - 7:2a, 51c-60 |
+|           |                | Matthew 23:24-39 |
+| | | |
+
+|-----------|----------|--------|
+|Day | Psalm | Lesson |
+| st-john | Psalm 92 | Exodus 33:18-23 |
+|           | /or/ Psalm 92:1-4, 11-14 | 1 John 1:1-9 |
+|           |                | John 21:19-24 |
+| | | |
+| holy-innocents | Psalm 124 | Jeremiah 31:15-17 |
+|           |                | Revelation 21:1-7 |
+|           |                | Matthew 2:13-18 |
+| | | |
+| thanksgiving-day | Psalm 100 | Deuteronomy 26:1-11 |
+|           |                | Philippians 4:4-9 |
+|           |                | John 6:25-35 |
+| | | |
+#+end_example
+
+** Days converted to BCP standard
+
+WIP
+generates imperfect output file!
+In pentecost:
+- multiple second/gospel lessons
+- no track 2 lessons
+#+BEGIN_SRC python :python python3 :results output
+  import json
+
+  types = ['first_reading', 'second_reading', 'gospel', 'morning_psalms']
+  lessons = ['first', 'second', 'gospel', 'psalm']
+  years = ['A', 'B', 'C']
+
+  # Conversion
+  convert_lesson = dict({'first_reading':'first', 'second_reading':'second', 'gospel':'gospel', 'morning_psalms':'psalm'})
+
+  # TODO: missing christmas-day-ii, christmas-day-iii, palm-sunday-liturgy-of-the-palms, palm-sunday-liturgy-of-the-word, easter-day-the-great-vigil, easter-day-evening-service, day-of-pentecost-early-or-vigil-service
+  convert_day = dict({
+  'first-advent':'first-sunday-of-advent',
+  'second-advent':'second-sunday-of-advent',
+  'third-advent':'third-sunday-of-advent',
+  'fourth-advent':'fourth-sunday-of-advent',
+  'christmas':'christmas-day-i',
+  '1st-sunday-after-christmas':'first-sunday-after-christmas',
+  'holy-name':'holy-name',
+  '2nd-sunday-after-christmas':'second-sunday-after-christmas',
+  'epiphany':'the-epiphany',
+  '1st-epiphany':'first-sunday-after-epiphany',
+  '2nd-epiphany':'second-sunday-after-epiphany',
+  '3rd-epiphany':'third-sunday-after-epiphany',
+  '4th-epiphany':'fourth-sunday-after-epiphany',
+  '5th-epiphany':'fifth-sunday-after-epiphany',
+  '6th-epiphany':'sixth-sunday-after-epiphany',
+  '7th-epiphany':'seventh-sunday-after-epiphany',
+  '8th-epiphany':'eighth-sunday-after-epiphany',
+  'last-epiphany':'last-sunday-after-epiphany',
+  'wednesday-last-epiphany':'ash-wednesday',
+  '1st-lent':'first-sunday-in-lent',
+  '2nd-lent':'second-sunday-in-lent',
+  '3rd-lent':'third-sunday-in-lent',
+  '4th-lent':'fourth-sunday-in-lent',
+  '5th-lent':'fifth-sunday-in-lent',
+  'holy-week':'holy-week',
+  'monday-holy-week':'monday-in-holy-week',
+  'tuesday-holy-week':'tuesday-in-holy-week',
+  'wednesday-holy-week':'wednesday-in-holy-week',
+  'thursday-holy-week':'maundy-thursday',
+  'friday-holy-week':'good-friday',
+  'saturday-holy-week':'holy-saturday',
+  'easter':'easter-day-principal-service',
+  'monday-easter':'monday-in-easter-week',
+  'tuesday-easter':'tuesday-in-easter-week',
+  'wednesday-easter':'wednesday-in-easter-week',
+  'thursday-easter':'thursday-in-easter-week',
+  'friday-easter':'friday-in-easter-week',
+  'saturday-easter':'saturday-in-easter-week',
+  '2nd-easter':'second-sunday-of-easter',
+  '3rd-easter':'third-sunday-of-easter',
+  '4th-easter':'fourth-sunday-of-easter',
+  '5th-easter':'fifth-sunday-of-easter',
+  '6th-easter':'sixth-sunday-of-easter',
+  'thursday-6th-easter':'ascension-day',
+  '7th-easter':'seventh-sunday-of-easter',
+  'pentecost':'day-of-pentecost-principal-service',
+  'trinity-sunday':'trinity-sunday',
+  'proper-1':'proper-1',
+  'proper-2':'proper-2',
+  'proper-3':'proper-3',
+  'proper-4':'proper-4',
+  'proper-5':'proper-5',
+  'proper-6':'proper-6',
+  'proper-7':'proper-7',
+  'proper-8':'proper-8',
+  'proper-9':'proper-9',
+  'proper-10':'proper-10',
+  'proper-11':'proper-11',
+  'proper-12':'proper-12',
+  'proper-13':'proper-13',
+  'proper-14':'proper-14',
+  'proper-15':'proper-15',
+  'proper-16':'proper-16',
+  'proper-17':'proper-17',
+  'proper-18':'proper-18',
+  'proper-19':'proper-19',
+  'proper-20':'proper-20',
+  'proper-21':'proper-21',
+  'proper-22':'proper-22',
+  'proper-23':'proper-23',
+  'proper-24':'proper-24',
+  'proper-25':'proper-25',
+  'proper-26':'proper-26',
+  'proper-27':'proper-27',
+  'proper-28':'proper-28',
+  'proper-29':'proper-29-christ-the-king',
+  'confession-of-st-peter':'confession-of-st-peter',
+  'conversion-of-st-paul':'conversion-of-st-paul',
+  'the-presentation':'the-presentation',
+  'st-matthias':'st-matthias',
+  'st-joseph':'st-joseph',
+  'annunciation':'the-annunciation',
+  'st-mark':'st-mark',
+  'ss-philip-and-james':'st-philip-&-st-james',
+  'the-visitation':'the-visitation',
+  'st-barnabas':'st-barnabas',
+  'nativity-of-st-john-the-baptist':'nativity-of-st-john-the-baptist',
+  'ss-peter-and-paul':'st-peter-&-st-paul',
+  'independence-day':'independence-day',
+  'st-mary-magdalene':'st-mary-magdalene',
+  'st-james':'st-james',
+  'the-transfiguration':'the-transfiguration',
+  'st-mary-the-virgin':'st-mary-the-virgin',
+  'st-bartholomew':'st-bartholomew',
+  'holy-cross':'holy-cross-day',
+  'st-matthew':'st-matthew',
+  'st-michael':'st-michael-&-all-angels',
+  'st-luke':'st-luke',
+  'st-james-of-jerusalem':'st-james-of-jerusalem',
+  'ss-simon-and-jude':'st-simon-&-st-jude',
+  'all-saints-day':'all-saints-day',
+  'st-andrew':'st-andrew',
+  'st-thomas':'st-thomas',
+  'st-stephen':'st-stephen',
+  'st-john':'st-john',
+  'holy-innocents':'holy-innocents',
+  'thanksgiving-day':'thanksgiving-day'})
+
+
+  breaks = ['first-advent', '1st-sunday-after-christmas', '4th-epiphany', '3rd-lent', 'easter', '4th-easter', 'proper-1', 'proper-4', 'proper-10', 'proper-17', 'proper-24', 'confession-of-st-peter', 'st-mark', 'st-james', 'st-luke', 'st-john']
+
+  new_breaks=[]
+  for b in breaks:
+    new_breaks.append(convert_day[b])
+
+  def loadlectionary(filename):
+      with open(filename, "r") as f:
+          data = f.read()
+      return json.loads(data)
+
+  def get_days_set(data):
+    days=[]
+    for i in data:
+      if(i['day'] not in days):
+        days.append(i['day'])
+    return days
+
+
+  def narrow_data_set(data, field, value):
+    results=[]
+    for i in data:
+      if(i[field]==value):
+        results.append(i)
+    return results
+
+  def get_citations(data, type):
+    results = []
+    for i in narrow_data_set(data, 'type', type):
+       if i['citation'] not in results:
+         if (results):
+           results.append("/or/ " + i['citation'])
+         else:
+           results.append(i['citation'])
+    results.reverse() # return reverse so they can be retrieved with .pop()
+    return results
+
+
+  def get_new_citations(data, lesson):
+    results = []
+    for i in narrow_data_set(data, 'lesson', lesson):
+       if i['citation'] not in results:
+         if (results):
+           results.append("/or/ " + i['citation'])
+         else:
+           results.append(i['citation'])
+    results.reverse() # return reverse so they can be retrieved with .pop()
+    return results
+
+
+  def show(data, year, day):
+    data = narrow_data_set(narrow_data_set(data, 'year', year), 'day', day)
+    if (day.find("proper")>=0):
+      track1 = narrow_data_set(data, 'track', '1')
+      track2 = narrow_data_set(data, 'track', '2')
+      psalms=get_new_citations(track2, 'psalm')
+      psalms+=get_new_citations(track2, 'first')
+      psalms+=get_new_citations(track1, 'psalm')
+      psalms+=get_new_citations(track1, 'first')
+      lessons=get_new_citations(data, 'gospel')
+      lessons+=get_new_citations(data, 'second')
+      print("| " + day + " | " + psalms.pop() + " | " + lessons.pop() + " | ")
+      while (psalms):
+        if (lessons):
+          print("|           | " + psalms.pop() + " | " + lessons.pop() + " | ")
+        else:
+          print("|           | " + psalms.pop() + " |                 |")
+    else:
+      psalms=get_new_citations(data, 'psalm')
+      lessons=get_new_citations(data, 'gospel')
+      lessons+=get_new_citations(data, 'second')
+      lessons+=get_new_citations(data, 'first')
+      print("| " + day + " | " + psalms.pop() + " | " + lessons.pop() + " | ")
+      while (lessons):
+        if (psalms):
+          print("|           | " + psalms.pop() + " | " + lessons.pop() + " | ")
+        else:
+          print("|           |                | " + lessons.pop() + " | ")
+
+
+  def print_lectionary(rcl):
+      days = get_days_set(rcl)
+      print("*** Venite Lectionary Altered & Formatted as BCP")
+      print()
+      for year in years:
+          print()
+          print()
+          print("**** Year " + year)
+          for day in days:
+              if day in new_breaks:
+                  print()
+                  print("|-----------|----------|--------|")
+                  if day.find("proper") >= 0:
+                      print("|Day | OT & Psalms | NT Lessons |")
+                  else:
+                      print("|Day | Psalm | Lesson |")
+              show(rcl, year, day)
+              print("| | | |")
+
+  def convert(data, when, day):
+      results = []
+      data = narrow_data_set(narrow_data_set(data, 'when', when), 'day', day)
+
+      for lesson_type in ['morning_psalms', 'first_reading']:
+          typedata =  narrow_data_set(data, 'type', lesson_type)
+          if day.find("proper")>=0:
+              tracks = dict({1:'rclsundayTrack1', 2:'rclsundayTrack2'})
+              for i in [1, 2]:
+                  for lesson in narrow_data_set(typedata, 'lectionary', tracks[i]):
+                      results.append(dict({'year':when, 'day':convert_day[day], 'lesson':convert_lesson[lesson_type], 'track':str(i), 'alt':'', 'citation':lesson['citation']}))
+          else:
+              for lesson in typedata:
+                  results.append(dict({'year':when, 'day':convert_day[day], 'lesson':convert_lesson[lesson_type], 'track':'', 'alt':'', 'citation':lesson['citation']}))
+
+      for lesson_type in ['second_reading', 'gospel']:
+          for lesson in narrow_data_set(data, 'type', lesson_type):
+              results.append(dict({'year':when, 'day':convert_day[day], 'lesson':convert_lesson[lesson_type], 'track':'', 'alt':'', 'citation':lesson['citation']}))
+      return results
+
+  def convert_lectionary(old_rcl):
+      days = get_days_set(old_rcl)
+      new_rcl = []
+      for year in years:
+          for day in days:
+              new_rcl += convert(old_rcl, year, day)
+      return new_rcl
+
+
+  rcl = loadlectionary('lectionary/rcl1.json')
+  rcl += loadlectionary('lectionary/rcl2.json')
+  #print_lectionary(rcl)
+
+  new_rcl = convert_lectionary(rcl)
+  with open ("output/bcprcl.json", "w") as t:
+      t.write(json.dumps(new_rcl, indent=4))
+  print_lectionary(new_rcl)
+
+
+
+#+END_SRC
+
+#+RESULTS:
