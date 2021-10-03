@@ -1859,6 +1859,7 @@ Issues:
 **
 
 * Read lectionary from venite project
+** Source: https://github.com/gbj/venite
 ** Test out file format
 #+BEGIN_SRC python :python python3 :results output
   import json
@@ -1908,6 +1909,8 @@ analyze: ../venite/commonprayer/src/assets/lectionary/rcl2.json
 Found 1361 records
 day (107): first-advent, second-advent, third-advent, fourth-advent, christmas, 1st-sunday-after-christmas, holy-name, 2nd-sunday-after-christmas, epiphany, 1st-epiphany, 2nd-epiphany, 3rd-epiphany, 4th-epiphany, 5th-epiphany, 6th-epiphany, 7th-epiphany, 8th-epiphany, last-epiphany, wednesday-last-epiphany, 1st-lent, 2nd-lent, 3rd-lent, 4th-lent, 5th-lent, holy-week, monday-holy-week, tuesday-holy-week, wednesday-holy-week, thursday-holy-week, friday-holy-week, saturday-holy-week, easter, monday-easter, tuesday-easter, wednesday-easter, thursday-easter, friday-easter, saturday-easter, 2nd-easter, 3rd-easter, 4th-easter, 5th-easter, 6th-easter, thursday-6th-easter, 7th-easter, pentecost, trinity-sunday, proper-1, proper-2, proper-3, proper-4, proper-5, proper-6, proper-7, proper-8, proper-9, proper-10, proper-11, proper-12, proper-13, proper-14, proper-15, proper-16, proper-17, proper-18, proper-19, proper-20, proper-21, proper-22, proper-23, proper-24, proper-25, proper-26, proper-27, proper-28, proper-29, confession-of-st-peter, conversion-of-st-paul, the-presentation, st-matthias, st-joseph, annunciation, st-mark, ss-philip-and-james, the-visitation, st-barnabas, nativity-of-st-john-the-baptist, ss-peter-and-paul, independence-day, st-mary-magdalene, st-james, the-transfiguration, st-mary-the-virgin, st-bartholomew, holy-cross, st-matthew, st-michael, st-luke, st-james-of-jerusalem, ss-simon-and-jude, all-saints-day, st-andrew, st-thomas, st-stephen, st-john, holy-innocents, thanksgiving-day
 when (3): A, B, C
+
+
 whentype (1): year
 lectionary (1): rclsunday
 type (5): first_reading, morning_psalms, second_reading, gospel, palms_gospel
@@ -1975,8 +1978,8 @@ def analyze(data, when, day):
     if(i['day']==day and i['when']==when):
       print(i)
 
-rcl1 = loadlectionary('lectionary/rcl1.json')
-rcl2 = loadlectionary('lectionary/rcl2.json')
+rcl1 = loadlectionary('../venite/commonprayer/src/assets/lectionary/rcl1.json')
+rcl2 = loadlectionary('../venite/commonprayer/src/assets/lectionary/rcl2.json')
 
 print("rcl1 for proper 19-A: ")
 analyze(rcl1, "A", "proper-19")
@@ -1992,11 +1995,11 @@ rcl1 for proper 19-A:
 {'whentype': 'year', 'when': 'A', 'day': 'proper-19', 'lectionary': 'rclsundayTrack1', 'type': 'morning_psalms', 'citation': 'Psalm 114'}
 {'whentype': 'year', 'when': 'A', 'day': 'proper-19', 'lectionary': 'rclsundayTrack1', 'type': 'second_reading', 'citation': 'Romans 14:1-12'}
 {'whentype': 'year', 'when': 'A', 'day': 'proper-19', 'lectionary': 'rclsundayTrack1', 'type': 'gospel', 'citation': 'Matthew 18:21-35'}
-{'whentype': 'year', 'when': 'A', 'day': 'proper-19', 'lectionary': 'rclsundayTrack1', 'type': 'morning_psalms', 'citation': 'Exodus 15:1b-11, 20-21'}
+{'whentype': 'year', 'when': 'A', 'day': 'proper-19', 'lectionary': 'rclsundayTrack1', 'type': 'morning_psalms', 'citation': 'Exodus 15:1b-11,20-21'}
 
 rc2 for proper 19-A:
 {'whentype': 'year', 'when': 'A', 'day': 'proper-19', 'lectionary': 'rclsunday', 'type': 'first_reading', 'citation': 'Genesis 50:15-21'}
-{'whentype': 'year', 'when': 'A', 'day': 'proper-19', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'Psalm 103:(1-7), 8-13'}
+{'whentype': 'year', 'when': 'A', 'day': 'proper-19', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'Psalm 103:(1-7),8-13'}
 {'whentype': 'year', 'when': 'A', 'day': 'proper-19', 'lectionary': 'rclsunday', 'type': 'second_reading', 'citation': 'Romans 14:1-12'}
 {'whentype': 'year', 'when': 'A', 'day': 'proper-19', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Matthew 18:21-35'}
 #+end_example
@@ -2015,8 +2018,8 @@ def analyze(data, when, day):
     if(i['day']==day and i['when']==when):
       print(i)
 
-rcl1 = loadlectionary('lectionary/rcl1.json')
-rcl2 = loadlectionary('lectionary/rcl2.json')
+rcl1 = loadlectionary('../venite/commonprayer/src/assets/lectionary/rcl1.json')
+rcl2 = loadlectionary('../venite/commonprayer/src/assets/lectionary/rcl2.json')
 
 print("rcl1 for proper 1-A: ")
 analyze(rcl1, "A", "proper-1")
@@ -2057,8 +2060,8 @@ analyze(rcl2, "A", "proper-1")
         print(i)
 
 
-  rcl1 = loadlectionary('lectionary/rcl1.json')
-  rcl2 = loadlectionary('lectionary/rcl2.json')
+  rcl1 = loadlectionary('../venite/commonprayer/src/assets/lectionary/rcl1.json')
+  rcl2 = loadlectionary('../venite/commonprayer/src/assets/lectionary/rcl2.json')
 
   print ("palms_gospel in rcl1:")
   pg1 = days_with_palms_gospel(rcl1)
@@ -2076,6 +2079,46 @@ analyze(rcl2, "A", "proper-1")
 #+END_SRC
 
 #+RESULTS:
+#+begin_example
+palms_gospel in rcl1:
+{'holy-week'}
+palms_gospel in rcl2:
+{'holy-week'}
+
+
+
+
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'gospel', 'citation': 'Matthew 27:11-54'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'palms_gospel', 'citation': 'Matthew 21:1-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'gospel', 'citation': 'Mark 15:1-47'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'palms_gospel', 'citation': 'Mark 11:1-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'palms_gospel', 'citation': 'John 12:12-16'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'gospel', 'citation': 'Luke 22:14-23:56'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'palms_gospel', 'citation': 'Luke 19:28-40'}
+
+
+
+
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'first_reading', 'citation': 'Isaiah 50:4-9'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'Psalm 31:9-16'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Matthew 27:11-54'}
+{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'palms_gospel', 'citation': 'Matthew 21:1-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'first_reading', 'citation': 'Isaiah 50:4-9'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'Psalm 31:9-16'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Mark 15:1-47'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'palms_gospel', 'citation': 'Mark 11:1-11'}
+{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'palms_gospel', 'citation': 'John 12:12-16'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'first_reading', 'citation': 'Isaiah 50:4-9a'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'Psalm 31:9-16'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Luke 22:14-23:56'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'palms_gospel', 'citation': 'Luke 19:28-40'}
+#+end_example
 #+begin_example
 palms_gospel in rcl1:
 {'holy-week'}
@@ -2220,8 +2263,8 @@ palms_gospel in rcl2:
         print(i)
 
 
-  rcl1 = loadlectionary('lectionary/rcl1.json')
-  rcl2 = loadlectionary('lectionary/rcl2.json')
+  rcl1 = loadlectionary('../venite/commonprayer/src/assets/lectionary/rcl1.json')
+  rcl2 = loadlectionary('../venite/commonprayer/src/assets/lectionary/rcl2.json')
 
   print ("palms_gospel in rcl1:")
   pg1 = days_with_palms_gospel(rcl1)
@@ -2273,88 +2316,7 @@ palms_gospel in rcl2:
 {'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Mark 15:1-47'}
 {'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'palms_gospel', 'citation': 'Mark 11:1-11'}
 {'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'palms_gospel', 'citation': 'John 12:12-16'}
-{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'first_reading', 'citation': 'Isaiah 50:4-9'}
-{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'Psalm 31:9-16'}
-{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
-{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Luke 22:14-23:56'}
-{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'palms_gospel', 'citation': 'Luke 19:28-40'}
-#+end_exampl
-e*** What's up with holy week?
-#+BEGIN_SRC python :python python3 :results output
-  import json
-
-  def loadlectionary(filename):
-    with open(filename, "r") as f:
-      data = f.read()
-    return json.loads(data)
-
-  def days_with_palms_gospel(data):
-    found = []
-    for i in data:
-      if(i['type']=='palms_gospel'):
-        found.append(i['day'])
-    return set(found)
-
-  def show(data, day):
-    for i in data:
-      if(i['day']==day):
-        print(i)
-
-
-  rcl1 = loadlectionary('lectionary/rcl1.json')
-  rcl2 = loadlectionary('lectionary/rcl2.json')
-
-  print ("palms_gospel in rcl1:")
-  pg1 = days_with_palms_gospel(rcl1)
-  print(pg1)
-
-  print ("palms_gospel in rcl2:")
-  pg2 = days_with_palms_gospel(rcl2)
-  print(pg2)
-
-  print("\n\n\n")
-  show(rcl1, 'holy-week')
-  print("\n\n\n")
-  show(rcl2, 'holy-week')
-
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-palms_gospel in rcl1:
-{'holy-week'}
-palms_gospel in rcl2:
-{'holy-week'}
-
-
-
-
-{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
-{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'gospel', 'citation': 'Matthew 27:11-54'}
-{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'palms_gospel', 'citation': 'Matthew 21:1-11'}
-{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
-{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'gospel', 'citation': 'Mark 15:1-47'}
-{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'palms_gospel', 'citation': 'Mark 11:1-11'}
-{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'palms_gospel', 'citation': 'John 12:12-16'}
-{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
-{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'gospel', 'citation': 'Luke 22:14-23:56'}
-{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsundayTrack1', 'type': 'palms_gospel', 'citation': 'Luke 19:28-40'}
-
-
-
-
-{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'first_reading', 'citation': 'Isaiah 50:4-9'}
-{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'Psalm 31:9-16'}
-{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
-{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Matthew 27:11-54'}
-{'whentype': 'year', 'when': 'A', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'palms_gospel', 'citation': 'Matthew 21:1-11'}
-{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'first_reading', 'citation': 'Isaiah 50:4-9'}
-{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'Psalm 31:9-16'}
-{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
-{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Mark 15:1-47'}
-{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'palms_gospel', 'citation': 'Mark 11:1-11'}
-{'whentype': 'year', 'when': 'B', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'palms_gospel', 'citation': 'John 12:12-16'}
-{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'first_reading', 'citation': 'Isaiah 50:4-9'}
+{'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'first_reading', 'citation': 'Isaiah 50:4-9a'}
 {'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'Psalm 31:9-16'}
 {'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'second_reading', 'citation': 'Philippians 2:5-11'}
 {'whentype': 'year', 'when': 'C', 'day': 'holy-week', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Luke 22:14-23:56'}
@@ -2413,8 +2375,8 @@ palms_gospel in rcl2:
           print("    missing=[" + ", ".join(map(str, missing)) + "]")
 
 
-  rcl1 = loadlectionary('lectionary/rcl1.json')
-  rcl2 = loadlectionary('lectionary/rcl2.json')
+  rcl1 = loadlectionary('../venite/commonprayer/src/assets/lectionary/rcl1.json')
+  rcl2 = loadlectionary('../venite/commonprayer/src/assets/lectionary/rcl2.json')
 
   days = get_days_set(rcl1)
   days2 = get_days_set(rcl2)
@@ -3153,8 +3115,8 @@ Check st-john-C
       if(i['day']==day and i['when']==when):
         print(i)
 
-  rcl1 = loadlectionary('lectionary/rcl1.json')
-  rcl2 = loadlectionary('lectionary/rcl2.json')
+  rcl1 = loadlectionary('../venite/commonprayer/src/assets/lectionary/rcl1.json')
+  rcl2 = loadlectionary('../venite/commonprayer/src/assets/lectionary/rcl2.json')
 
   print("rcl1")
   analyze(rcl1, "A", "third-advent")
@@ -3192,18 +3154,60 @@ Records for third-advent-A
 rcl1
 Records for proper-11-A
 {'whentype': 'year', 'when': 'A', 'day': 'proper-11', 'lectionary': 'rclsundayTrack1', 'type': 'first_reading', 'citation': 'Genesis 28:10-19'}
-{'whentype': 'year', 'when': 'A', 'day': 'proper-11', 'lectionary': 'rclsundayTrack1', 'type': 'morning_psalms', 'citation': 'Psalm 139:1-11, 22-23'}
+{'whentype': 'year', 'when': 'A', 'day': 'proper-11', 'lectionary': 'rclsundayTrack1', 'type': 'morning_psalms', 'citation': 'Psalm 139:1-11,22-23'}
 {'whentype': 'year', 'when': 'A', 'day': 'proper-11', 'lectionary': 'rclsundayTrack1', 'type': 'second_reading', 'citation': 'Romans 8:12-25'}
-{'whentype': 'year', 'when': 'A', 'day': 'proper-11', 'lectionary': 'rclsundayTrack1', 'type': 'gospel', 'citation': 'Matthew 13:24-30, 13:36-43'}
-{'whentype': 'year', 'when': 'A', 'day': 'proper-11', 'lectionary': 'rclsundayTrack1', 'type': 'morning_psalms', 'citation': 'Wisdom of Solomon 12:13, 16-19'}
+{'whentype': 'year', 'when': 'A', 'day': 'proper-11', 'lectionary': 'rclsundayTrack1', 'type': 'gospel', 'citation': 'Matthew 13:24-30,36-43'}
+{'whentype': 'year', 'when': 'A', 'day': 'proper-11', 'lectionary': 'rclsundayTrack1', 'type': 'morning_psalms', 'citation': 'Wisdom of Solomon 12:13,16-19'}
 
 rcl2
 Records for proper-11-A
 {'whentype': 'year', 'when': 'A', 'day': 'proper-11', 'lectionary': 'rclsunday', 'type': 'first_reading', 'citation': 'Isaiah 44:6-8'}
 {'whentype': 'year', 'when': 'A', 'day': 'proper-11', 'lectionary': 'rclsunday', 'type': 'morning_psalms', 'citation': 'Psalm 86:11-17'}
 {'whentype': 'year', 'when': 'A', 'day': 'proper-11', 'lectionary': 'rclsunday', 'type': 'second_reading', 'citation': 'Romans 8:12-25'}
-{'whentype': 'year', 'when': 'A', 'day': 'proper-11', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Matthew 13:24-30, 13:36-43'}
+{'whentype': 'year', 'when': 'A', 'day': 'proper-11', 'lectionary': 'rclsunday', 'type': 'gospel', 'citation': 'Matthew 13:24-30,36-43'}
 #+end_example
+
+** Improving rcl1/rcl2
+
+*** Generate format like BCP for visual comparison
+*** Working on Year C (20211001)
+*** TODO: Year A
+*** TODO: Year B
+*** Correct errors A B +C+
+*** Add missing letters for partial verses A B +C+
+*** DONE Fix spacing around commas, semicolons +A+ +B+ +C+
+CLOSED: [2021-10-03 Sun 14:20]
+
+**** no space after comma (skipping verses)
+
+**** remove duplicated chapter specifer (more verses, same chapter)
+
+**** space after semicolon (skipping to later chapters)
+
+**** BCP seems to use en-dash for verse range inside a single chapter, em-dash when it crosses chapters. Ignore.
+
+*** Add missing parenthetical specifications
+*** Add missing days
+**** christmas-ii
+**** christmas-iii
+**** easter-vigil
+**** easter-evening
+**** pentecost-early-or-vigil
+**** liturgy of palms?
+*** Add missing alternative readings
+*** Run Test: Check citation formatting (below)
+*** Run Test: Check for consistent duplicated data (below)
+*** Print like BCP & compare again (below)
+
+** build bcprcl.json, bcprcl-track1.json, bcprcl-track2.json, bcprcl-opinionated.json
+*** change canticle specification format
+*** add alternate canticles
+*** combine files
+*** better field names
+*** use canonical (bcp) day names (all lowercase, spaces to dashes)
+*** Access directly from hugo
+*** Check for all scriptures downloaded
+*** opinionated = all options removed
 
 ** See if the duplicate data is all consistent
 Yup, qol b'seder!
@@ -3252,8 +3256,8 @@ Yup, qol b'seder!
               print("    rcl1  =[" + ", ".join(map(str, citations1)) + "]")
               print("    rcl2  =[" + ", ".join(map(str, citations2)) + "]")
 
-  rcl1 = loadlectionary('lectionary/rcl1.json')
-  rcl2 = loadlectionary('lectionary/rcl2.json')
+  rcl1 = loadlectionary('../venite/commonprayer/src/assets/lectionary/rcl1.json')
+  rcl2 = loadlectionary('../venite/commonprayer/src/assets/lectionary/rcl2.json')
 
   days = get_days_set(rcl1)
   years = ['A', 'B', 'C']
@@ -3265,6 +3269,67 @@ Yup, qol b'seder!
 #+END_SRC
 
 #+RESULTS:
+** Check citation formatting
+Chapter numbers shouldn't be repeated
+Commas should not be followed by spaces
+Semicolons /should/ be followed by a space
+#+BEGIN_SRC python :python python3 :results output
+  import json
+
+  def loadlectionary(filename):
+    with open(filename, "r") as f:
+      data = f.read()
+    return json.loads(data)
+
+  def report(record, condition):
+    year = record["when"]
+    day = record["day"]
+    reading = record["type"]
+    print("- " + day + " (" + year + ") " + reading + ":  " + condition)
+
+  def check_citation(record):
+    citation = record["citation"]
+
+    chapters = citation.split(":")
+    if len(chapters)>2:
+       if (chapters[0][-1] == chapters[1][-1]):
+         report(record, "chapter specified multiple times")
+
+    if citation.find(", ") >= 0:
+      report(record, "space after comma")
+
+    breaks = citation.split(";")
+    for b in breaks[1:]:
+     if (b[0] != " "):
+       report(record, "missing space after semicolon")
+
+  rcl1 = loadlectionary('../venite/commonprayer/src/assets/lectionary/rcl1.json')
+  rcl2 = loadlectionary('../venite/commonprayer/src/assets/lectionary/rcl2.json')
+
+  print ("********************")
+  print ("Checking rcl1.json")
+  print ("********************")
+  for r in rcl1:
+    check_citation(r)
+  print ()
+  print ()
+  print ("********************")
+  print ("Checking rcl2.json")
+  print ("********************")
+  for r in rcl2:
+    check_citation(r)
+
+#+END_SRC
+
+#+RESULTS:
+: ********************
+: Checking rcl1.json
+: ********************
+:
+:
+: ********************
+: Checking rcl2.json
+: ********************
 ** Show records formatted like BCP
 #+BEGIN_SRC python :python python3 :results output
   import json
@@ -3334,8 +3399,8 @@ Yup, qol b'seder!
 
 
 
-  rcl = loadlectionary('lectionary/rcl1.json')
-  rcl += loadlectionary('lectionary/rcl2.json')
+  rcl = loadlectionary('../venite/commonprayer/src/assets/lectionary/rcl1.json')
+  rcl += loadlectionary('../venite/commonprayer/src/assets/lectionary/rcl2.json')
   days = get_days_set(rcl)
 
   print("*** Venite Lectionary Formatted as BCP")
@@ -4858,7 +4923,7 @@ Yup, qol b'seder!
 | | | |
 #+end_example
 
-** Days converted to BCP standard
+** Build bcprcl.json
 
 WIP
 generates imperfect output file!
@@ -5114,8 +5179,8 @@ In pentecost:
       return new_rcl
 
 
-  rcl = loadlectionary('lectionary/rcl1.json')
-  rcl += loadlectionary('lectionary/rcl2.json')
+  rcl = loadlectionary('../venite/commonprayer/src/assets/lectionary/rcl1.json')
+  rcl += loadlectionary('../venite/commonprayer/src/assets/lectionary/rcl2.json')
   #print_lectionary(rcl)
 
   new_rcl = convert_lectionary(rcl)
