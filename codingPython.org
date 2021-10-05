@@ -3170,7 +3170,8 @@ Records for proper-11-A
 ** Improving rcl1/rcl2
 
 *** Generate format like BCP for visual comparison
-*** Working on Year C (20211001)
+*** DONE Year C (20211001)
+CLOSED: [2021-10-03 Sun 21:10]
 *** TODO: Year A
 *** TODO: Year B
 *** Correct errors A B +C+
@@ -3186,15 +3187,24 @@ CLOSED: [2021-10-03 Sun 14:20]
 
 **** BCP seems to use en-dash for verse range inside a single chapter, em-dash when it crosses chapters. Ignore.
 
-*** Add missing parenthetical specifications
-*** Add missing days
-**** christmas-ii
-**** christmas-iii
-**** easter-vigil
-**** easter-evening
-**** pentecost-early-or-vigil
-**** liturgy of palms?
-*** Add missing alternative readings
+*** Add missing parenthetical specifications A B +C+
+*** Add missing alternative readings A B +C+
+*** DONE Rename Ecclesiasticus to Sirach, Wisdom to Wisdom of Solomon
+CLOSED: [2021-10-03 Sun 20:18]
+*** DONE Add missing days
+CLOSED: [2021-10-04 Mon 21:38]
+**** DONE christmas-ii
+CLOSED: [2021-10-04 Mon 20:59]
+**** DONE christmas-iii
+CLOSED: [2021-10-04 Mon 20:59]
+**** DONE easter-day-the-great-vigil
+CLOSED: [2021-10-04 Mon 21:28]
+**** DONE easter-day-evening-service
+CLOSED: [2021-10-04 Mon 21:04]
+**** DONE day-of-pentecost-early-or-vigil-service
+CLOSED: [2021-10-04 Mon 21:13]
+**** DONE liturgy of palms?
+CLOSED: [2021-10-04 Mon 21:33]
 *** Run Test: Check citation formatting (below)
 *** Run Test: Check for consistent duplicated data (below)
 *** Print like BCP & compare again (below)
@@ -3202,9 +3212,10 @@ CLOSED: [2021-10-03 Sun 14:20]
 ** build bcprcl.json, bcprcl-track1.json, bcprcl-track2.json, bcprcl-opinionated.json
 *** change canticle specification format
 *** add alternate canticles
-*** combine files
-*** better field names
+*** add em-dashes for ranges that cross chapter boundaries (to match BCP)?? Two dashes seems to break oremus. Actual em-dash is harder to type / not plain ascii
 *** use canonical (bcp) day names (all lowercase, spaces to dashes)
+*** better field names
+*** combine files
 *** Access directly from hugo
 *** Check for all scriptures downloaded
 *** opinionated = all options removed
