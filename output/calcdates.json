@@ -1,0 +1,562 @@
+[
+    {
+        "day": "first-sunday-of-advent",
+        "relative": "xmas-last",
+        "value": "-28"
+    },
+    {
+        "day": "second-sunday-of-advent",
+        "relative": "xmas-last",
+        "value": "-21"
+    },
+    {
+        "day": "third-sunday-of-advent",
+        "relative": "xmas-last",
+        "value": "-14"
+    },
+    {
+        "day": "fourth-sunday-of-advent",
+        "relative": "xmas-last",
+        "value": "-7"
+    },
+    {
+        "day": "christmas-day-i",
+        "relative": "date",
+        "value": "2000-12-25"
+    },
+    {
+        "day": "christmas-day-ii",
+        "relative": "date",
+        "value": "2000-12-25"
+    },
+    {
+        "day": "christmas-day-iii",
+        "relative": "date",
+        "value": "2000-12-25"
+    },
+    {
+        "day": "first-sunday-after-christmas",
+        "relative": "xmas-last",
+        "value": "0"
+    },
+    {
+        "day": "holy-name",
+        "relative": "date",
+        "value": "2000-01-01"
+    },
+    {
+        "day": "second-sunday-after-christmas",
+        "relative": "xmas-last",
+        "value": "7"
+    },
+    {
+        "day": "the-epiphany",
+        "relative": "date",
+        "value": "2000-01-06"
+    },
+    {
+        "day": "first-sunday-after-epiphany",
+        "relative": "epiphany1",
+        "value": "0"
+    },
+    {
+        "day": "second-sunday-after-epiphany",
+        "relative": "epiphany1",
+        "value": "7"
+    },
+    {
+        "day": "third-sunday-after-epiphany",
+        "relative": "epiphany1",
+        "value": "14"
+    },
+    {
+        "day": "fourth-sunday-after-epiphany",
+        "relative": "epiphany1",
+        "value": "21"
+    },
+    {
+        "day": "fifth-sunday-after-epiphany",
+        "relative": "epiphany1",
+        "value": "28"
+    },
+    {
+        "day": "sixth-sunday-after-epiphany",
+        "relative": "epiphany1",
+        "value": "35"
+    },
+    {
+        "day": "seventh-sunday-after-epiphany",
+        "relative": "epiphany1",
+        "value": "42"
+    },
+    {
+        "day": "eighth-sunday-after-epiphany",
+        "relative": "epiphany1",
+        "value": "49"
+    },
+    {
+        "day": "last-sunday-after-the-epiphany",
+        "relative": "easter",
+        "value": "-49"
+    },
+    {
+        "day": "ash-wednesday",
+        "relative": "easter",
+        "value": "-46"
+    },
+    {
+        "day": "first-sunday-in-lent",
+        "relative": "easter",
+        "value": "-42"
+    },
+    {
+        "day": "second-sunday-in-lent",
+        "relative": "easter",
+        "value": "-35"
+    },
+    {
+        "day": "third-sunday-in-lent",
+        "relative": "easter",
+        "value": "-28"
+    },
+    {
+        "day": "fourth-sunday-in-lent",
+        "relative": "easter",
+        "value": "-21"
+    },
+    {
+        "day": "fifth-sunday-in-lent",
+        "relative": "easter",
+        "value": "-14"
+    },
+    {
+        "day": "palm-sunday-liturgy-of-the-word",
+        "relative": "easter",
+        "value": "-7"
+    },
+    {
+        "day": "palm-sunday-liturgy-of-the-palms",
+        "relative": "easter",
+        "value": "-7"
+    },
+    {
+        "day": "monday-in-holy-week",
+        "relative": "easter",
+        "value": "-6"
+    },
+    {
+        "day": "tuesday-in-holy-week",
+        "relative": "easter",
+        "value": "-5"
+    },
+    {
+        "day": "wednesday-in-holy-week",
+        "relative": "easter",
+        "value": "-4"
+    },
+    {
+        "day": "maundy-thursday",
+        "relative": "easter",
+        "value": "-3"
+    },
+    {
+        "day": "good-friday",
+        "relative": "easter",
+        "value": "-2"
+    },
+    {
+        "day": "holy-saturday",
+        "relative": "easter",
+        "value": "-1"
+    },
+    {
+        "day": "easter-day-the-great-vigil",
+        "relative": "easter",
+        "value": "-1"
+    },
+    {
+        "day": "easter-day-principal-service",
+        "relative": "easter",
+        "value": "0"
+    },
+    {
+        "day": "easter-day-evening-service",
+        "relative": "easter",
+        "value": "0"
+    },
+    {
+        "day": "monday-in-easter-week",
+        "relative": "easter",
+        "value": "1"
+    },
+    {
+        "day": "tuesday-in-easter-week",
+        "relative": "easter",
+        "value": "2"
+    },
+    {
+        "day": "wednesday-in-easter-week",
+        "relative": "easter",
+        "value": "3"
+    },
+    {
+        "day": "thursday-in-easter-week",
+        "relative": "easter",
+        "value": "4"
+    },
+    {
+        "day": "friday-in-easter-week",
+        "relative": "easter",
+        "value": "5"
+    },
+    {
+        "day": "saturday-in-easter-week",
+        "relative": "easter",
+        "value": "6"
+    },
+    {
+        "day": "second-sunday-of-easter",
+        "relative": "easter",
+        "value": "7"
+    },
+    {
+        "day": "third-sunday-of-easter",
+        "relative": "easter",
+        "value": "14"
+    },
+    {
+        "day": "fourth-sunday-of-easter",
+        "relative": "easter",
+        "value": "21"
+    },
+    {
+        "day": "fifth-sunday-of-easter",
+        "relative": "easter",
+        "value": "28"
+    },
+    {
+        "day": "sixth-sunday-of-easter",
+        "relative": "easter",
+        "value": "35"
+    },
+    {
+        "day": "ascension-day",
+        "relative": "easter",
+        "value": "39"
+    },
+    {
+        "day": "seventh-sunday-of-easter",
+        "relative": "easter",
+        "value": "42"
+    },
+    {
+        "day": "day-of-pentecost-early-or-vigil-service",
+        "relative": "easter",
+        "value": "49"
+    },
+    {
+        "day": "day-of-pentecost-principal-service",
+        "relative": "easter",
+        "value": "49"
+    },
+    {
+        "day": "trinity-sunday",
+        "relative": "easter",
+        "value": "56"
+    },
+    {
+        "day": "proper-1",
+        "relative": "xmas-next",
+        "value": "-231"
+    },
+    {
+        "day": "proper-2",
+        "relative": "xmas-next",
+        "value": "-224"
+    },
+    {
+        "day": "proper-3",
+        "relative": "xmas-next",
+        "value": "-217"
+    },
+    {
+        "day": "proper-4",
+        "relative": "xmas-next",
+        "value": "-210"
+    },
+    {
+        "day": "proper-5",
+        "relative": "xmas-next",
+        "value": "-203"
+    },
+    {
+        "day": "proper-6",
+        "relative": "xmas-next",
+        "value": "-196"
+    },
+    {
+        "day": "proper-7",
+        "relative": "xmas-next",
+        "value": "-189"
+    },
+    {
+        "day": "proper-8",
+        "relative": "xmas-next",
+        "value": "-182"
+    },
+    {
+        "day": "proper-9",
+        "relative": "xmas-next",
+        "value": "-175"
+    },
+    {
+        "day": "proper-10",
+        "relative": "xmas-next",
+        "value": "-168"
+    },
+    {
+        "day": "proper-11",
+        "relative": "xmas-next",
+        "value": "-161"
+    },
+    {
+        "day": "proper-12",
+        "relative": "xmas-next",
+        "value": "-154"
+    },
+    {
+        "day": "proper-13",
+        "relative": "xmas-next",
+        "value": "-147"
+    },
+    {
+        "day": "proper-14",
+        "relative": "xmas-next",
+        "value": "-140"
+    },
+    {
+        "day": "proper-15",
+        "relative": "xmas-next",
+        "value": "-133"
+    },
+    {
+        "day": "proper-16",
+        "relative": "xmas-next",
+        "value": "-126"
+    },
+    {
+        "day": "proper-17",
+        "relative": "xmas-next",
+        "value": "-119"
+    },
+    {
+        "day": "proper-18",
+        "relative": "xmas-next",
+        "value": "-112"
+    },
+    {
+        "day": "proper-19",
+        "relative": "xmas-next",
+        "value": "-105"
+    },
+    {
+        "day": "proper-20",
+        "relative": "xmas-next",
+        "value": "-98"
+    },
+    {
+        "day": "proper-21",
+        "relative": "xmas-next",
+        "value": "-91"
+    },
+    {
+        "day": "proper-22",
+        "relative": "xmas-next",
+        "value": "-84"
+    },
+    {
+        "day": "proper-23",
+        "relative": "xmas-next",
+        "value": "-77"
+    },
+    {
+        "day": "proper-24",
+        "relative": "xmas-next",
+        "value": "-70"
+    },
+    {
+        "day": "proper-25",
+        "relative": "xmas-next",
+        "value": "-63"
+    },
+    {
+        "day": "proper-26",
+        "relative": "xmas-next",
+        "value": "-56"
+    },
+    {
+        "day": "proper-27",
+        "relative": "xmas-next",
+        "value": "-49"
+    },
+    {
+        "day": "proper-28",
+        "relative": "xmas-next",
+        "value": "-42"
+    },
+    {
+        "day": "proper-29-christ-the-king",
+        "relative": "xmas-next",
+        "value": "-35"
+    },
+    {
+        "day": "st-andrew",
+        "relative": "date",
+        "value": "2000-11-30"
+    },
+    {
+        "day": "st-thomas",
+        "relative": "date",
+        "value": "2000-12-21"
+    },
+    {
+        "day": "st-stephen",
+        "relative": "date",
+        "value": "2000-12-26"
+    },
+    {
+        "day": "st-john",
+        "relative": "date",
+        "value": "2000-12-27"
+    },
+    {
+        "day": "holy-innocents",
+        "relative": "date",
+        "value": "2000-12-28"
+    },
+    {
+        "day": "confession-of-st-peter",
+        "relative": "date",
+        "value": "2000-01-18"
+    },
+    {
+        "day": "conversion-of-st-paul",
+        "relative": "date",
+        "value": "2000-01-25"
+    },
+    {
+        "day": "the-presentation",
+        "relative": "date",
+        "value": "2000-02-02"
+    },
+    {
+        "day": "st-matthias",
+        "relative": "date",
+        "value": "2000-02-24"
+    },
+    {
+        "day": "st-joseph",
+        "relative": "date",
+        "value": "2000-03-19"
+    },
+    {
+        "day": "the-annunciation",
+        "relative": "date",
+        "value": "2000-03-25"
+    },
+    {
+        "day": "st-mark",
+        "relative": "date",
+        "value": "2000-04-25"
+    },
+    {
+        "day": "st-philip-&-st-james",
+        "relative": "date",
+        "value": "2000-05-01"
+    },
+    {
+        "day": "the-visitation",
+        "relative": "date",
+        "value": "2000-05-31"
+    },
+    {
+        "day": "st-barnabas",
+        "relative": "date",
+        "value": "2000-06-11"
+    },
+    {
+        "day": "nativity-of-st-john-the-baptist",
+        "relative": "date",
+        "value": "2000-06-24"
+    },
+    {
+        "day": "st-peter-&-st-paul",
+        "relative": "date",
+        "value": "2000-06-29"
+    },
+    {
+        "day": "independence-day",
+        "relative": "date",
+        "value": "2000-07-04"
+    },
+    {
+        "day": "st-mary-magdalene",
+        "relative": "date",
+        "value": "2000-07-22"
+    },
+    {
+        "day": "st-james",
+        "relative": "date",
+        "value": "2000-07-25"
+    },
+    {
+        "day": "the-transfiguration",
+        "relative": "date",
+        "value": "2000-08-06"
+    },
+    {
+        "day": "st-mary-the-virgin",
+        "relative": "date",
+        "value": "2000-08-15"
+    },
+    {
+        "day": "st-bartholomew",
+        "relative": "date",
+        "value": "2000-08-24"
+    },
+    {
+        "day": "holy-cross-day",
+        "relative": "date",
+        "value": "2000-09-14"
+    },
+    {
+        "day": "st-matthew",
+        "relative": "date",
+        "value": "2000-09-21"
+    },
+    {
+        "day": "st-michael-&-all-angels",
+        "relative": "date",
+        "value": "2000-09-29"
+    },
+    {
+        "day": "st-luke",
+        "relative": "date",
+        "value": "2000-10-18"
+    },
+    {
+        "day": "st-james-of-jerusalem",
+        "relative": "date",
+        "value": "2000-10-23"
+    },
+    {
+        "day": "st-simon-&-st-jude",
+        "relative": "date",
+        "value": "2000-10-28"
+    },
+    {
+        "day": "all-saints-day",
+        "relative": "date",
+        "value": "2000-11-01"
+    }
+]

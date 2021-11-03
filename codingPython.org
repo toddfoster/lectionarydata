@@ -8552,6 +8552,256 @@ NO REPLACEMENT FOR jonathanmyrickdaniels
 NO REPLACEMENT FOR resurrection3
 Replaced 95 day codes
 #+end_example
+*** List day codes
+#+BEGIN_SRC python :python python3 :results output
+  import os
+
+  convert_days = {
+  'advent1':'first-sunday-of-advent',
+  'advent2':'second-sunday-of-advent',
+  'advent3':'third-sunday-of-advent',
+  'advent4':'fourth-sunday-of-advent',
+  'nativity1':'christmas-day-i',
+  'nativity2':'christmas-day-ii',
+  'nativity3':'christmas-day-iii',
+  'christmas1':'first-sunday-after-christmas',
+  'holyname':'holy-name',
+  'christmas2':'second-sunday-after-christmas',
+  'epiphany':'the-epiphany',
+  'epiphany1':'first-sunday-after-epiphany',
+  'epiphany2':'second-sunday-after-epiphany',
+  'epiphany3':'third-sunday-after-epiphany',
+  'epiphany4':'fourth-sunday-after-epiphany',
+  'epiphany5':'fifth-sunday-after-epiphany',
+  'epiphany6':'sixth-sunday-after-epiphany',
+  'epiphany7':'seventh-sunday-after-epiphany',
+  'epiphany8':'eighth-sunday-after-epiphany',
+  'epiphanylast':'last-sunday-after-the-epiphany',
+  'ashwednesday':'ash-wednesday',
+  'lent1':'first-sunday-in-lent',
+  'lent2':'second-sunday-in-lent',
+  'lent3':'third-sunday-in-lent',
+  'lent4':'fourth-sunday-in-lent',
+  'lent5':'fifth-sunday-in-lent',
+  'palmsunday':'palm-sunday-liturgy-of-the-word',
+  'liturgyofpalms':'palm-sunday-liturgy-of-the-palms',
+  'holymonday':'monday-in-holy-week',
+  'holytuesday':'tuesday-in-holy-week',
+  'holywednesday':'wednesday-in-holy-week',
+  'maundythursday':'maundy-thursday',
+  'goodfriday':'good-friday',
+  'holysaturday':'holy-saturday',
+  'eastervigil':'easter-day-the-great-vigil',
+  'resurrection1':'easter-day-principal-service',
+  'eastereve':'easter-day-evening-service',
+  'eastermonday':'monday-in-easter-week',
+  'eastertuesday':'tuesday-in-easter-week',
+  'easterwednesday':'wednesday-in-easter-week',
+  'easterthursday':'thursday-in-easter-week',
+  'easterfriday':'friday-in-easter-week',
+  'eastersaturday':'saturday-in-easter-week',
+  'easter2':'second-sunday-of-easter',
+  'easter3':'third-sunday-of-easter',
+  'easter4':'fourth-sunday-of-easter',
+  'easter5':'fifth-sunday-of-easter',
+  'easter6':'sixth-sunday-of-easter',
+  'ascension1':'ascension-day',
+  'easter7':'seventh-sunday-of-easter',
+  '':'day-of-pentecost-early-or-vigil-service',
+  'pentecost1':'day-of-pentecost-principal-service',
+  'trinity':'trinity-sunday',
+  'proper1':'proper-1',
+  'proper2':'proper-2',
+  'proper3':'proper-3',
+  'proper4':'proper-4',
+  'proper5':'proper-5',
+  'proper6':'proper-6',
+  'proper7':'proper-7',
+  'proper8':'proper-8',
+  'proper9':'proper-9',
+  'proper10':'proper-10',
+  'proper11':'proper-11',
+  'proper12':'proper-12',
+  'proper13':'proper-13',
+  'proper14':'proper-14',
+  'proper15':'proper-15',
+  'proper16':'proper-16',
+  'proper17':'proper-17',
+  'proper18':'proper-18',
+  'proper19':'proper-19',
+  'proper20':'proper-20',
+  'proper21':'proper-21',
+  'proper22':'proper-22',
+  'proper23':'proper-23',
+  'proper24':'proper-24',
+  'proper25':'proper-25',
+  'proper26':'proper-26',
+  'proper27':'proper-27',
+  'proper28':'proper-28',
+  'proper29':'proper-29-christ-the-king',
+  'standrew':'st-andrew',
+  'stthomas':'st-thomas',
+  'ststephen':'st-stephen',
+  'stjohn':'st-john',
+  'holyinnocents':'holy-innocents',
+  'confessionstpeter':'confession-of-st-peter',
+  'conversionstpaul':'conversion-of-st-paul',
+  'presentation':'the-presentation',
+  'stmatthias':'st-matthias',
+  'stjoseph':'st-joseph',
+  'annunciation':'the-annunciation',
+  'stmark':'st-mark',
+  'stsphilipjames':'st-philip-&-st-james',
+  'visitation':'the-visitation',
+  'stbarnabas':'st-barnabas',
+  'nativitystjohnbaptist':'nativity-of-st-john-the-baptist',
+  'stspeterpaul':'st-peter-&-st-paul',
+  'independenceday':'independence-day',
+  'stmarymagdalene':'st-mary-magdalene',
+  'stjames':'st-james',
+  'transfiguration':'the-transfiguration',
+  'stmaryvirgin':'st-mary-the-virgin',
+  'stbartholomew':'st-bartholomew',
+  'holycross':'holy-cross-day',
+  'stmatthew':'st-matthew',
+  'stmichaelallangels':'st-michael-&-all-angels',
+  'stluke':'st-luke',
+  'stjamesjerusalem':'st-james-of-jerusalem',
+  'stssimonjude':'st-simon-&-st-jude',
+  'allsaintsa':'all-saints-day',
+  'allsaintsb':'all-saints-day',
+      'allsaintsc':'all-saints-day',
+  'thanksgivinga':'thanksgiving-day',
+      'thanksgivingb':'thanksgiving-day',
+      'thanksgivingc':'thanksgiving-day'
+  }
+
+  for day in convert_days.values():
+    print(day)
+
+
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+first-sunday-of-advent
+second-sunday-of-advent
+third-sunday-of-advent
+fourth-sunday-of-advent
+christmas-day-i
+christmas-day-ii
+christmas-day-iii
+first-sunday-after-christmas
+holy-name
+second-sunday-after-christmas
+the-epiphany
+first-sunday-after-epiphany
+second-sunday-after-epiphany
+third-sunday-after-epiphany
+fourth-sunday-after-epiphany
+fifth-sunday-after-epiphany
+sixth-sunday-after-epiphany
+seventh-sunday-after-epiphany
+eighth-sunday-after-epiphany
+last-sunday-after-the-epiphany
+ash-wednesday
+first-sunday-in-lent
+second-sunday-in-lent
+third-sunday-in-lent
+fourth-sunday-in-lent
+fifth-sunday-in-lent
+palm-sunday-liturgy-of-the-word
+palm-sunday-liturgy-of-the-palms
+monday-in-holy-week
+tuesday-in-holy-week
+wednesday-in-holy-week
+maundy-thursday
+good-friday
+holy-saturday
+easter-day-the-great-vigil
+easter-day-principal-service
+easter-day-evening-service
+monday-in-easter-week
+tuesday-in-easter-week
+wednesday-in-easter-week
+thursday-in-easter-week
+friday-in-easter-week
+saturday-in-easter-week
+second-sunday-of-easter
+third-sunday-of-easter
+fourth-sunday-of-easter
+fifth-sunday-of-easter
+sixth-sunday-of-easter
+ascension-day
+seventh-sunday-of-easter
+day-of-pentecost-early-or-vigil-service
+day-of-pentecost-principal-service
+trinity-sunday
+proper-1
+proper-2
+proper-3
+proper-4
+proper-5
+proper-6
+proper-7
+proper-8
+proper-9
+proper-10
+proper-11
+proper-12
+proper-13
+proper-14
+proper-15
+proper-16
+proper-17
+proper-18
+proper-19
+proper-20
+proper-21
+proper-22
+proper-23
+proper-24
+proper-25
+proper-26
+proper-27
+proper-28
+proper-29-christ-the-king
+st-andrew
+st-thomas
+st-stephen
+st-john
+holy-innocents
+confession-of-st-peter
+conversion-of-st-paul
+the-presentation
+st-matthias
+st-joseph
+the-annunciation
+st-mark
+st-philip-&-st-james
+the-visitation
+st-barnabas
+nativity-of-st-john-the-baptist
+st-peter-&-st-paul
+independence-day
+st-mary-magdalene
+st-james
+the-transfiguration
+st-mary-the-virgin
+st-bartholomew
+holy-cross-day
+st-matthew
+st-michael-&-all-angels
+st-luke
+st-james-of-jerusalem
+st-simon-&-st-jude
+all-saints-day
+all-saints-day
+all-saints-day
+thanksgiving-day
+thanksgiving-day
+thanksgiving-day
+#+end_example
 *** Fix up firstReading -> reading
  find content -type f -exec sed -i 's/firstReading/first/g' {} +
  find content -type f -exec sed -i 's/secondReading/second/g' {} +
@@ -8568,3 +8818,333 @@ How to:
 *** >TODO: Choose alternate collect/reading
 *** >TODO: rm shortcode psalm.md
 *** DONE Move Shared Prayers todo's to shared prayers
+* Generate liturgies from templates
+** Transform spreadsheet into json / dictionary for calculating dates
+#+BEGIN_SRC python :python python3 :results output
+  import csv, os, datetime, json
+  srcfile = "src/calcdates.csv"
+  outfile = "output/calcdates.json"
+
+  dateOutputFormat = "%Y-%m-%d"
+  colCode = 0
+  colDxmaslast = 1
+  colDepiphany = 2
+  colDeaster = 3
+  colDxmasnext = 4
+  colMonth = 5
+  colDay = 6
+
+  count=0
+  results = []
+  with open(srcfile, "r") as f:
+      reader = csv.reader(f)
+      next(reader) # skip header line
+      for row in reader:
+          if row[colCode] == "": continue # Skip unused rows
+          code = row[colCode].strip()
+
+          value = row[colDxmaslast].strip()
+          if value:
+            results.append({'day':code, 'relative':'xmas-last', 'value':value})
+            continue
+
+          value = row[colDepiphany].strip()
+          if value:
+            results.append({'day':code, 'relative':'epiphany1', 'value':value})
+            continue
+
+          value = row[colDeaster].strip()
+          if value:
+            results.append({'day':code, 'relative':'easter', 'value':value})
+            continue
+
+          value = row[colDxmasnext].strip()
+          if value:
+            results.append({'day':code, 'relative':'xmas-next', 'value':value})
+            continue
+
+
+          month = row[colMonth].strip()
+          day = row[colDay].strip()
+          if month and day:
+            results.append({'day':code, 'relative':'date', 'value':str(datetime.date(2000,int(month),int(day)))})
+            continue
+
+
+          # rowDate = datetime.datetime.strptime(row[dateColumn], '%m/%d/%y')
+          # print ("Code = " + code)
+          count+=1
+  print ("Found " + str(count) + " records without calculation method (1=thanksgiving).")
+  print ("Recorded " + str(len(results)))
+  with open (outfile, "w") as t:
+      t.write(json.dumps(results, indent=4))
+
+#+END_SRC
+
+#+RESULTS:
+: Found 1 records without calculation method (1=thanksgiving).
+: Recorded 112
+
+** Test out file format calcdate.json
+#+BEGIN_SRC python :python python3 :results output
+  import json
+
+  def report(title, data):
+         print(title + " (" + str(len(data)) + "): " + title + " = [\"" + '", "'.join(map(str, data)) + "\"]")
+
+  def get_elements(data, name):
+       results = []
+       for i in data:
+         if(i[name] not in results):
+           results.append(i[name])
+       return results
+
+  def analyze(filename):
+       print("--------------------")
+       print("analyze: " + filename + "\n")
+
+       with open(filename, "r") as f:
+         data = f.read()
+       table = json.loads(data)
+
+       print ("Found " + str(len(table)) + " records")
+
+       fields = []
+       for r in table:
+         for k in list(r):
+           if k not in fields:
+             fields.append(k)
+       report("Fields: ", fields)
+
+       report('relative', get_elements(table, 'relative'))
+
+  analyze('output/calcdates.json')
+
+#+END_SRC
+
+#+RESULTS:
+: --------------------
+: analyze: output/calcdates.json
+:
+: Found 112 records
+: Fields:  (3): Fields:  = ["day", "relative", "value"]
+: relative (5): relative = ["xmas-last", "date", "epiphany1", "easter", "xmas-next"]
+** Calculate Easter
+#+BEGIN_SRC python :python python3 :results output
+  from dateutil.easter import *
+
+  print("Calculate Easter Sunday for:")
+  years = (2021, 2022, 2018, 1991)
+  for y in years:
+    print (str(y) + ": " + str(easter(y)))
+
+#+END_SRC
+
+#+RESULTS:
+: Calculate Easter Sunday for:
+: 2021: 2021-04-04
+: 2022: 2022-04-17
+: 2018: 2018-04-01
+: 1991: 1991-03-31
+
+** Calculate Sunday after Christmas
+#+BEGIN_SRC python :python python3 :results output
+  from dateutil.relativedelta import *
+  from datetime import *
+  import calendar
+
+  def sundayafterchristmas(year):
+    return date(year,12,26) + relativedelta(weekday=calendar.SUNDAY)
+
+  print("Calculate Christmas Sunday for:")
+  years = (2021, 2022, 2018, 1991)
+  for y in years:
+    print (str(y) + ": " + str(sundayafterchristmas(y)))
+
+#+END_SRC
+
+#+RESULTS:
+: Calculate Christmas Sunday for:
+: 2021: 2021-12-26
+: 2022: 2023-01-01
+: 2018: 2018-12-30
+: 1991: 1991-12-29
+
+** Calculate dates
+Notes:
+- Does not move movable dates or pay attention to precedence
+- Be sure to leave out:
+  -  epiphanies that happen on or after last-sunday-after-the-epiphany
+  - propers that happen on or before trinity-sunday
+  - second-sunday-after-christmas if it occurs after the-epiphany
+#+BEGIN_SRC python :python python3 :results output
+  from dateutil.easter import *
+  from dateutil.relativedelta import *
+  from datetime import *
+  import calendar
+  import json
+
+  calcdates = []
+  with open("output/calcdates.json", "r") as f:
+    data = f.read()
+    calcdates = json.loads(data)
+
+  def sundayafterchristmas(year):
+    return date(year,12,26) + relativedelta(weekday=calendar.SUNDAY)
+
+  def sundayafterepiphany(year):
+    return date(year,1,7) + relativedelta(weekday=calendar.SUNDAY)
+
+  def calcdate(method, value, year):
+    # TODO default year to current
+    # methods = ["xmas-last", "date", "eiphany1", "easter", "xmas-next"]
+    if method == 'xmas-last':
+      return sundayafterchristmas(year-1) + relativedelta(days=int(value))
+
+    if method == 'xmas-next':
+      return sundayafterchristmas(year) + relativedelta(days=int(value))
+
+    if method == 'epiphany1':
+      return sundayafterepiphany(year) + relativedelta(days=int(value))
+
+    if method == 'easter':
+      return easter(year) + relativedelta(days=int(value))
+
+    if method == 'date':
+      when = date.fromisoformat(value)
+      return date(year, when.month, when.day)
+
+    if method == 'thanksgiving-day':
+      return date(year,11,22) + relativedelta(weekday=calendar.THURSDAY)
+
+    raise Exception("Invalid method encountered: " + method)
+
+  print("Thanksgiving 2012 = " + str(calcdate('thanksgiving-day', '', 2012)))
+  print("Thanksgiving = " + str(calcdate('thanksgiving-day', '', 2021)))
+  for d in calcdates:
+    result = calcdate(d['relative'], d['value'], 2021)
+    print (d['day'] + ": " + str(result))
+
+
+
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Thanksgiving 2012 = 2012-11-22
+Thanksgiving = 2021-11-25
+first-sunday-of-advent: 2020-11-29
+second-sunday-of-advent: 2020-12-06
+third-sunday-of-advent: 2020-12-13
+fourth-sunday-of-advent: 2020-12-20
+christmas-day-i: 2021-12-25
+christmas-day-ii: 2021-12-25
+christmas-day-iii: 2021-12-25
+first-sunday-after-christmas: 2020-12-27
+holy-name: 2021-01-01
+second-sunday-after-christmas: 2021-01-03
+the-epiphany: 2021-01-06
+first-sunday-after-epiphany: 2021-01-10
+second-sunday-after-epiphany: 2021-01-17
+third-sunday-after-epiphany: 2021-01-24
+fourth-sunday-after-epiphany: 2021-01-31
+fifth-sunday-after-epiphany: 2021-02-07
+sixth-sunday-after-epiphany: 2021-02-14
+seventh-sunday-after-epiphany: 2021-02-21
+eighth-sunday-after-epiphany: 2021-02-28
+last-sunday-after-the-epiphany: 2021-02-14
+ash-wednesday: 2021-02-17
+first-sunday-in-lent: 2021-02-21
+second-sunday-in-lent: 2021-02-28
+third-sunday-in-lent: 2021-03-07
+fourth-sunday-in-lent: 2021-03-14
+fifth-sunday-in-lent: 2021-03-21
+palm-sunday-liturgy-of-the-word: 2021-03-28
+palm-sunday-liturgy-of-the-palms: 2021-03-28
+monday-in-holy-week: 2021-03-29
+tuesday-in-holy-week: 2021-03-30
+wednesday-in-holy-week: 2021-03-31
+maundy-thursday: 2021-04-01
+good-friday: 2021-04-02
+holy-saturday: 2021-04-03
+easter-day-the-great-vigil: 2021-04-03
+easter-day-principal-service: 2021-04-04
+easter-day-evening-service: 2021-04-04
+monday-in-easter-week: 2021-04-05
+tuesday-in-easter-week: 2021-04-06
+wednesday-in-easter-week: 2021-04-07
+thursday-in-easter-week: 2021-04-08
+friday-in-easter-week: 2021-04-09
+saturday-in-easter-week: 2021-04-10
+second-sunday-of-easter: 2021-04-11
+third-sunday-of-easter: 2021-04-18
+fourth-sunday-of-easter: 2021-04-25
+fifth-sunday-of-easter: 2021-05-02
+sixth-sunday-of-easter: 2021-05-09
+ascension-day: 2021-05-13
+seventh-sunday-of-easter: 2021-05-16
+day-of-pentecost-early-or-vigil-service: 2021-05-23
+day-of-pentecost-principal-service: 2021-05-23
+trinity-sunday: 2021-05-30
+proper-1: 2021-05-09
+proper-2: 2021-05-16
+proper-3: 2021-05-23
+proper-4: 2021-05-30
+proper-5: 2021-06-06
+proper-6: 2021-06-13
+proper-7: 2021-06-20
+proper-8: 2021-06-27
+proper-9: 2021-07-04
+proper-10: 2021-07-11
+proper-11: 2021-07-18
+proper-12: 2021-07-25
+proper-13: 2021-08-01
+proper-14: 2021-08-08
+proper-15: 2021-08-15
+proper-16: 2021-08-22
+proper-17: 2021-08-29
+proper-18: 2021-09-05
+proper-19: 2021-09-12
+proper-20: 2021-09-19
+proper-21: 2021-09-26
+proper-22: 2021-10-03
+proper-23: 2021-10-10
+proper-24: 2021-10-17
+proper-25: 2021-10-24
+proper-26: 2021-10-31
+proper-27: 2021-11-07
+proper-28: 2021-11-14
+proper-29-christ-the-king: 2021-11-21
+st-andrew: 2021-11-30
+st-thomas: 2021-12-21
+st-stephen: 2021-12-26
+st-john: 2021-12-27
+holy-innocents: 2021-12-28
+confession-of-st-peter: 2021-01-18
+conversion-of-st-paul: 2021-01-25
+the-presentation: 2021-02-02
+st-matthias: 2021-02-24
+st-joseph: 2021-03-19
+the-annunciation: 2021-03-25
+st-mark: 2021-04-25
+st-philip-&-st-james: 2021-05-01
+the-visitation: 2021-05-31
+st-barnabas: 2021-06-11
+nativity-of-st-john-the-baptist: 2021-06-24
+st-peter-&-st-paul: 2021-06-29
+independence-day: 2021-07-04
+st-mary-magdalene: 2021-07-22
+st-james: 2021-07-25
+the-transfiguration: 2021-08-06
+st-mary-the-virgin: 2021-08-15
+st-bartholomew: 2021-08-24
+holy-cross-day: 2021-09-14
+st-matthew: 2021-09-21
+st-michael-&-all-angels: 2021-09-29
+st-luke: 2021-10-18
+st-james-of-jerusalem: 2021-10-23
+st-simon-&-st-jude: 2021-10-28
+all-saints-day: 2021-11-01
+#+end_example
+
+** Build from templates
