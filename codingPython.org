@@ -9593,6 +9593,7 @@ bcppage: 355ff.
 #+end_example
 
 ** Loop over the whole year
+- WARNING: doesn't handle thanksgiving
 - Does not move movable dates or pay attention to precedence
 - Be sure to leave out:
   -  epiphanies that happen on or after last-sunday-after-the-epiphany
@@ -9872,6 +9873,51 @@ calcdates = 112
 - Does not move movable dates or pay attention to precedence
 
 #+BEGIN_SRC python :python python3 :results output
+  """Bulk Liturgist
+
+  Produce liturgies for a particular year based on the liturgical
+  calendar from the Book of Common Prayer (1979) for Sundays and
+  Major Feasts.
+
+  Required data sources are:
+     - calcdates.json: info on how to calculate the calendar dates
+       of Sundays & major feasts
+     - bcpcollects.json: source of proper titles for Sundays/feasts
+     - templatesdir : source of templates for how to generate each
+       liturgy
+
+  Usage
+      bulkliturgist [year] [flags...]
+      year = numeric year (e.g., 2022 will generate liturgies from
+             Advent 1 (28 Nov 2021) through Proper 29/CTK (20 Nov 2022).
+             Defaults to current year according to the liturgical
+             calendar.
+
+  Flags
+     - --dry-run : don't write anything to disk
+     - --past -p : generate liturgies even for dates already past
+     - --templates | -t dir : directory for templates
+     - --output | -o dir : directory for output
+     - --day | -d day : code for liturgical day to generate
+
+  The templates output, as origianlly implemented, are used to
+  populate the website https://www.sharedprayers.net using
+  the static website generator hugo (https://www.gohugo.io).
+
+  Copyright 2021 Todd Foster
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  """
   from dateutil.easter import *
   from dateutil.relativedelta import *
   from datetime import *
@@ -9880,13 +9926,16 @@ calcdates = 112
   from pathlib import Path
   import os
 
-  templatesdir = "src/templates"
-  outputdir = "output/2022"
   calcdatesfile = 'output/calcdates.json'
   collectsfile = 'output/bcpcollects.json'
   seasons = ('advent', 'christmas', 'epiphany', 'lent', 'easter', 'proper')
 
-  skip_past_dates = True
+  # Parameters can change these defaults:
+  skip_past_dates = True  # Don't generate liturgies for days before date.today()
+  dry_run = False
+  only_day = ""
+  templatesdir = "src/templates"
+  outputdir = "output/2022"
 
   calcdates = []
   with open(calcdatesfile, "r") as f:
@@ -9910,6 +9959,13 @@ calcdates = 112
         return i
 
   def liturgydate(day, year):
+    """
+    Calculate the calendar date for a liturgy in a liturgical year.
+
+    Liturgical year begins on Advent 1 (fourth Sunday before
+    Christmas). So liturgydate('first-sunday-of-advent', 2022)
+    returns "2021-11-28".
+    """
     year = int(year)
 
     # special case: thanksgiving-day on fourth Thursday in November
@@ -9985,6 +10041,34 @@ calcdates = 112
     return ""
 
   def choosetemplate(day, year):
+    """
+    Selects a template for the given liturgy
+
+    Parameters
+    ----------
+    day : str
+        The code for the day (e.g., first-sunday-of-advent)
+
+    year : str
+        The liturgical year. Days from first advent through the
+        end of the year go with the following liturgical year.
+        E.g., first-sunday-of-advent for year = 2022 occurs on
+        28 November 2021. (This could also be passed as an int.)
+
+    Chooses a template by looking in subdirectories of templatesdir,
+    in order:
+       - a directory named for the year (e.g., 2022)
+       - yeara | yearb | yearc
+       - default
+
+    Inside each subdirectory, we look for a file named (in order):
+       - with the code for the day (e.g., "first-sunday-of-advent.txt")
+       - with the season for the day: 'advent.txt | christmas.txt |
+         epiphany.txt | lent.txt | easter.txt | proper.txt
+       - default.txt
+
+    As soon as an appropriate file is found, its path/name is returned.
+    """
     year = str(year)
 
     c = choosetemplateindir(day, year, year)
@@ -9998,22 +10082,32 @@ calcdates = 112
 
   def generateliturgy(day, year):
     result = header(day, year)
-    template = choosetemplate('thanksgiving-day', 2022)
+    template = choosetemplate(day, 2022)
     with open(template, "r") as f:
       for line in f:
         result += line
     return result
 
   def writeliturgy(day, when, year):
-      print ("Generating liturgy for " + day + ": " + str(when))
+      if only_day and only_day != day:
+        return
+
+      if dry_run:
+        print ("DRY RUN: Not writing liturgy for " + day + ": " + str(when))
+        return
+
+      print ("Writing liturgy for " + day + ": " + str(when))
       liturgy = generateliturgy(day, year)
       with open (outputdir + "/" + day + ".md", "w") as t:
         t.write(liturgy)
         t.write("\n")
 
-
-  def batchliturgies(year):
-    os.makedirs(outputdir, exist_ok=True)
+  def majorliturgies(year):
+    """
+    Generate liturgies for Sundays and major feasts.
+    """
+    if not dry_run:
+      os.makedirs(outputdir, exist_ok=True)
 
     for d in calcdates:
       dday = d['day']
@@ -10030,7 +10124,7 @@ calcdates = 112
           continue
 
       # skip epiphanies that happen on or after last-sunday-after-the-epiphany
-      # exploiting a happy difference to not skip last-sunday-after-THE-epiphany
+      # exploiting a fortuitous difference to not skip last-sunday-after-THE-epiphany
       if dday.find('after-epiphany') >= 0:
         if ddate >= liturgydate('last-sunday-after-the-epiphany', year):
           continue
@@ -10041,22 +10135,21 @@ calcdates = 112
           continue
 
       writeliturgy(dday, ddate, year)
+
+    # Add thanksgiving-day, which is not included in calcdates.json
     thanksgivingdate = liturgydate('thanksgiving-day', year)
     if thanksgivingdate > date.today() or not skip_past_dates:
       writeliturgy('thanksgiving-day', thanksgivingdate, year)
 
 
 
-  batchliturgies(2021)
+  majorliturgies(2021)
 
 #+END_SRC
 
 #+RESULTS:
-: Generating liturgy for proper-27: 2021-11-07
-: Generating liturgy for proper-28: 2021-11-14
-: Generating liturgy for proper-29-christ-the-king: 2021-11-21
-: Generating liturgy for thanksgiving-day: 2021-11-25
+: Writing liturgy for proper-28: 2021-11-14
 
 
 ** OPEN Make into CLI
-command line options for year, from beginning of year, no clobber, output directory
+command line options for year, from beginning of year, no clobber, output directory, templates directory, dry-run
