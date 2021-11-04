@@ -9886,6 +9886,8 @@ calcdates = 112
   collectsfile = 'output/bcpcollects.json'
   seasons = ('advent', 'christmas', 'epiphany', 'lent', 'easter', 'proper')
 
+  skip_past_dates = True
+
   calcdates = []
   with open(calcdatesfile, "r") as f:
     data = f.read()
@@ -9935,7 +9937,11 @@ calcdates = 112
 
     if method == 'date':
       when = date.fromisoformat(value)
-      return date(year, when.month, when.day)
+      when = date(year, when.month, when.day)
+      # correct for static dates that occur between advent 1 & turn of year
+      if when > liturgydate('first-sunday-of-advent', year+1):
+        when = date(year-1, when.month, when.day)
+      return when
 
     raise Exception("Invalid method encountered: " + method)
 
@@ -9998,12 +10004,25 @@ calcdates = 112
         result += line
     return result
 
+  def writeliturgy(day, when, year):
+      print ("Generating liturgy for " + day + ": " + str(when))
+      liturgy = generateliturgy(day, year)
+      with open (outputdir + "/" + day + ".md", "w") as t:
+        t.write(liturgy)
+        t.write("\n")
+
+
   def batchliturgies(year):
     os.makedirs(outputdir, exist_ok=True)
 
     for d in calcdates:
       dday = d['day']
       ddate = liturgydate(dday, year)
+
+      # skip past dates?
+      if skip_past_dates:
+        if ddate < date.today():
+          continue
 
       # skip second-sunday-after-christmas if it occurs after the-epiphany
       if dday == 'second-sunday-after-christmas':
@@ -10021,125 +10040,22 @@ calcdates = 112
         if ddate <=  liturgydate('trinity-sunday', year):
           continue
 
-      print ("Generating liturgy for " + dday + ": " + str(ddate))
-      liturgy = generateliturgy(dday, year)
-      with open (outputdir + "/" + dday + ".md", "w") as t:
-        t.write(liturgy)
-        t.write("\n")
+      writeliturgy(dday, ddate, year)
+    thanksgivingdate = liturgydate('thanksgiving-day', year)
+    if thanksgivingdate > date.today() or not skip_past_dates:
+      writeliturgy('thanksgiving-day', thanksgivingdate, year)
 
-  batchliturgies(2022)
+
+
+  batchliturgies(2021)
 
 #+END_SRC
 
 #+RESULTS:
-#+begin_example
-Generating liturgy for first-sunday-of-advent: 2021-11-28
-Generating liturgy for second-sunday-of-advent: 2021-12-05
-Generating liturgy for third-sunday-of-advent: 2021-12-12
-Generating liturgy for fourth-sunday-of-advent: 2021-12-19
-Generating liturgy for christmas-day-i: 2022-12-25
-Generating liturgy for christmas-day-ii: 2022-12-25
-Generating liturgy for christmas-day-iii: 2022-12-25
-Generating liturgy for first-sunday-after-christmas: 2021-12-26
-Generating liturgy for holy-name: 2022-01-01
-Generating liturgy for second-sunday-after-christmas: 2022-01-02
-Generating liturgy for the-epiphany: 2022-01-06
-Generating liturgy for first-sunday-after-epiphany: 2022-01-09
-Generating liturgy for second-sunday-after-epiphany: 2022-01-16
-Generating liturgy for third-sunday-after-epiphany: 2022-01-23
-Generating liturgy for fourth-sunday-after-epiphany: 2022-01-30
-Generating liturgy for fifth-sunday-after-epiphany: 2022-02-06
-Generating liturgy for sixth-sunday-after-epiphany: 2022-02-13
-Generating liturgy for seventh-sunday-after-epiphany: 2022-02-20
-Generating liturgy for last-sunday-after-the-epiphany: 2022-02-27
-Generating liturgy for ash-wednesday: 2022-03-02
-Generating liturgy for first-sunday-in-lent: 2022-03-06
-Generating liturgy for second-sunday-in-lent: 2022-03-13
-Generating liturgy for third-sunday-in-lent: 2022-03-20
-Generating liturgy for fourth-sunday-in-lent: 2022-03-27
-Generating liturgy for fifth-sunday-in-lent: 2022-04-03
-Generating liturgy for palm-sunday-liturgy-of-the-word: 2022-04-10
-Generating liturgy for palm-sunday-liturgy-of-the-palms: 2022-04-10
-Generating liturgy for monday-in-holy-week: 2022-04-11
-Generating liturgy for tuesday-in-holy-week: 2022-04-12
-Generating liturgy for wednesday-in-holy-week: 2022-04-13
-Generating liturgy for maundy-thursday: 2022-04-14
-Generating liturgy for good-friday: 2022-04-15
-Generating liturgy for holy-saturday: 2022-04-16
-Generating liturgy for easter-day-the-great-vigil: 2022-04-16
-Generating liturgy for easter-day-principal-service: 2022-04-17
-Generating liturgy for easter-day-evening-service: 2022-04-17
-Generating liturgy for monday-in-easter-week: 2022-04-18
-Generating liturgy for tuesday-in-easter-week: 2022-04-19
-Generating liturgy for wednesday-in-easter-week: 2022-04-20
-Generating liturgy for thursday-in-easter-week: 2022-04-21
-Generating liturgy for friday-in-easter-week: 2022-04-22
-Generating liturgy for saturday-in-easter-week: 2022-04-23
-Generating liturgy for second-sunday-of-easter: 2022-04-24
-Generating liturgy for third-sunday-of-easter: 2022-05-01
-Generating liturgy for fourth-sunday-of-easter: 2022-05-08
-Generating liturgy for fifth-sunday-of-easter: 2022-05-15
-Generating liturgy for sixth-sunday-of-easter: 2022-05-22
-Generating liturgy for ascension-day: 2022-05-26
-Generating liturgy for seventh-sunday-of-easter: 2022-05-29
-Generating liturgy for day-of-pentecost-early-or-vigil-service: 2022-06-05
-Generating liturgy for day-of-pentecost-principal-service: 2022-06-05
-Generating liturgy for trinity-sunday: 2022-06-12
-Generating liturgy for proper-6: 2022-06-19
-Generating liturgy for proper-7: 2022-06-26
-Generating liturgy for proper-8: 2022-07-03
-Generating liturgy for proper-9: 2022-07-10
-Generating liturgy for proper-10: 2022-07-17
-Generating liturgy for proper-11: 2022-07-24
-Generating liturgy for proper-12: 2022-07-31
-Generating liturgy for proper-13: 2022-08-07
-Generating liturgy for proper-14: 2022-08-14
-Generating liturgy for proper-15: 2022-08-21
-Generating liturgy for proper-16: 2022-08-28
-Generating liturgy for proper-17: 2022-09-04
-Generating liturgy for proper-18: 2022-09-11
-Generating liturgy for proper-19: 2022-09-18
-Generating liturgy for proper-20: 2022-09-25
-Generating liturgy for proper-21: 2022-10-02
-Generating liturgy for proper-22: 2022-10-09
-Generating liturgy for proper-23: 2022-10-16
-Generating liturgy for proper-24: 2022-10-23
-Generating liturgy for proper-25: 2022-10-30
-Generating liturgy for proper-26: 2022-11-06
-Generating liturgy for proper-27: 2022-11-13
-Generating liturgy for proper-28: 2022-11-20
-Generating liturgy for proper-29-christ-the-king: 2022-11-27
-Generating liturgy for st-andrew: 2022-11-30
-Generating liturgy for st-thomas: 2022-12-21
-Generating liturgy for st-stephen: 2022-12-26
-Generating liturgy for st-john: 2022-12-27
-Generating liturgy for holy-innocents: 2022-12-28
-Generating liturgy for confession-of-st-peter: 2022-01-18
-Generating liturgy for conversion-of-st-paul: 2022-01-25
-Generating liturgy for the-presentation: 2022-02-02
-Generating liturgy for st-matthias: 2022-02-24
-Generating liturgy for st-joseph: 2022-03-19
-Generating liturgy for the-annunciation: 2022-03-25
-Generating liturgy for st-mark: 2022-04-25
-Generating liturgy for st-philip-&-st-james: 2022-05-01
-Generating liturgy for the-visitation: 2022-05-31
-Generating liturgy for st-barnabas: 2022-06-11
-Generating liturgy for nativity-of-st-john-the-baptist: 2022-06-24
-Generating liturgy for st-peter-&-st-paul: 2022-06-29
-Generating liturgy for independence-day: 2022-07-04
-Generating liturgy for st-mary-magdalene: 2022-07-22
-Generating liturgy for st-james: 2022-07-25
-Generating liturgy for the-transfiguration: 2022-08-06
-Generating liturgy for st-mary-the-virgin: 2022-08-15
-Generating liturgy for st-bartholomew: 2022-08-24
-Generating liturgy for holy-cross-day: 2022-09-14
-Generating liturgy for st-matthew: 2022-09-21
-Generating liturgy for st-michael-&-all-angels: 2022-09-29
-Generating liturgy for st-luke: 2022-10-18
-Generating liturgy for st-james-of-jerusalem: 2022-10-23
-Generating liturgy for st-simon-&-st-jude: 2022-10-28
-Generating liturgy for all-saints-day: 2022-11-01
-#+end_example
+: Generating liturgy for proper-27: 2021-11-07
+: Generating liturgy for proper-28: 2021-11-14
+: Generating liturgy for proper-29-christ-the-king: 2021-11-21
+: Generating liturgy for thanksgiving-day: 2021-11-25
 
 
 ** OPEN Make into CLI
