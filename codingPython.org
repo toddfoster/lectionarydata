@@ -9188,4 +9188,959 @@ all-saints-day: 2021-11-01
 
 ** Get title from json
 from bcpcollects.json
+** Build headers
+Notes:
+- Does not move movable dates or pay attention to precedence
+- Be sure to leave out:
+  -  epiphanies that happen on or after last-sunday-after-the-epiphany
+  - propers that happen on or before trinity-sunday
+  - second-sunday-after-christmas if it occurs after the-epiphany
+- conclude header in template by adding (e.g.,):
+  - rite: Holy Eucharist
+  - bcppage: 355ff.
+  - ---
+
+#+BEGIN_SRC python :python python3 :results output
+  from dateutil.easter import *
+  from dateutil.relativedelta import *
+  from datetime import *
+  import calendar
+  import json
+
+  calcdates = []
+  with open("output/calcdates.json", "r") as f:
+    data = f.read()
+    calcdates = json.loads(data)
+
+  collects = []
+  with open("output/bcpcollects.json", "r") as f:
+    data = f.read()
+    collects = json.loads(data)
+
+  def sundayafterchristmas(year):
+    return date(year,12,26) + relativedelta(weekday=calendar.SUNDAY)
+
+  def sundayafterepiphany(year):
+    return date(year,1,7) + relativedelta(weekday=calendar.SUNDAY)
+
+  def getrecord(data, day):
+    for i in data:
+      if i['day'] == day:
+        return i
+
+  def liturgydate(day, year):
+    # special case: thanksgiving-day on fourth Thursday in November
+    if day == 'thanksgiving-day':
+      return date(year,11,22) + relativedelta(weekday=calendar.THURSDAY)
+
+    calculator = getrecord(calcdates, day)
+    if not calculator:
+      raise Exception ("Calculation data for day " + day + " not found.")
+    method = calculator['relative']
+    value = calculator['value']
+
+    # methods = ["xmas-last", "date", "eiphany1", "easter", "xmas-next"]
+    if method == 'xmas-last':
+      return sundayafterchristmas(year-1) + relativedelta(days=int(value))
+
+    if method == 'xmas-next':
+      return sundayafterchristmas(year) + relativedelta(days=int(value))
+
+    if method == 'epiphany1':
+      return sundayafterepiphany(year) + relativedelta(days=int(value))
+
+    if method == 'easter':
+      return easter(year) + relativedelta(days=int(value))
+
+    if method == 'date':
+      when = date.fromisoformat(value)
+      return date(year, when.month, when.day)
+
+    raise Exception("Invalid method encountered: " + method)
+
+  def lectionarytitle(day, year):
+    collect = getrecord(collects, day)
+    if not collect:
+      raise Exception ("Title or day " + day + " not found.")
+    return collect['title']
+
+  def lectionaryyear(year):
+    # Working backwards, 1900 would be year a!
+    if year < 1900:
+      raise Exception ("Invalid year " + str(year) + ": only 1900 and later are supported.")
+    year = (year - 1900) % 3
+    if year == 0: return 'a'
+    elif year == 1: return 'b'
+    else: return 'c'
+
+  def header(day, year):
+    result = "---\n"
+    result += "title: " + lectionarytitle(day, year) + "\n"
+    result += "date: " + str(liturgydate(day, year)) + "\n"
+    result += "lectionaryyear: " + lectionaryyear(year) + "\n"
+    result += "proper: " + day + "\n"
+    return result
+
+  print("Thanksgiving 2012 = " + str(liturgydate('thanksgiving-day',  2012)))
+  print("Thanksgiving 2021 = " + str(liturgydate('thanksgiving-day',  2021)))
+  print("Advent1 2021 = " + str(liturgydate('first-sunday-of-advent',  2021)))
+  print (header('thanksgiving-day', 2021))
+
+
+
+#+END_SRC
+
+#+RESULTS:
+: Thanksgiving 2012 = 2012-11-22
+: Thanksgiving 2021 = 2021-11-25
+: Advent1 2021 = 2020-11-29
+: ---
+: title: Thanksgiving Day
+: date: 2021-11-25
+: lectionaryyear: b
+: proper: thanksgiving-day
+:
+** Choose template
+ Search hierarchy
+  - directories: 2022 | yearc | default
+	 - files: first-sunday-of-advent | advent |  default
+
+  TODO How to distinguish between weekday & weekend?!? Just build weekends here at first.
+
+#+BEGIN_SRC python :python python3 :results output
+  from pathlib import Path
+
+  templatesdir = "src/templates"
+
+  seasons = ('advent', 'christmas', 'epiphany', 'lent', 'easter', 'proper')
+
+  def lectionaryyear(year):
+    year = int(year)
+    # Working backwards, 1900 would be year a!
+    if year < 1900:
+      raise Exception ("Invalid year " + str(year) + ": only 1900 and later are supported.")
+    year = (year - 1900) % 3
+    if year == 0: return 'a'
+    elif year == 1: return 'b'
+    else: return 'c'
+
+  def choosetemplateindir(day, year, directory):
+    directory = templatesdir + "/" + directory
+    candidate = Path(directory + "/" + day + ".txt")
+    if candidate.is_file(): return candidate
+
+    for s in seasons:
+      if day.find(s) >= 0:
+        candidate = Path(directory + "/" + s + ".txt")
+        if candidate.is_file(): return candidate
+
+    candidate = Path(directory + "/" + "default" + ".txt")
+    if candidate.is_file(): return candidate
+
+    return ""
+
+  def choosetemplate(day, year):
+    year = str(year)
+
+    c = choosetemplateindir(day, year, year)
+    if c: return str(c)
+
+    c = choosetemplateindir(day, year, "year" + lectionaryyear(year))
+    if c: return str(c)
+
+    c = choosetemplateindir(day, year, "default")
+    return str(c)
+
+  print ("Thanksgiving Template chosen: " + choosetemplate('thanksgiving-day', 2022))
+  print ("Proper-21 template chosen: " + choosetemplate('proper-21', 2022))
+
+#+END_SRC
+
+#+RESULTS:
+: Thanksgiving Template chosen: src/templates/default/default.txt
+: Proper-21 template chosen: src/templates/default/default.txt
+
 ** Build from templates
+Notes:
+Conclude header in template by adding (e.g.,):
+  - rite: Holy Eucharist
+  - bcppage: 355ff.
+  - ---
+#+BEGIN_SRC python :python python3 :results output
+  from dateutil.easter import *
+  from dateutil.relativedelta import *
+  from datetime import *
+  import calendar
+  import json
+  from pathlib import Path
+
+  templatesdir = "src/templates"
+  calcdatesfile = 'output/calcdates.json'
+  collectsfile = 'output/bcpcollects.json'
+  seasons = ('advent', 'christmas', 'epiphany', 'lent', 'easter', 'proper')
+
+  calcdates = []
+  with open(calcdatesfile, "r") as f:
+    data = f.read()
+    calcdates = json.loads(data)
+
+  collects = []
+  with open(collectsfile, "r") as f:
+    data = f.read()
+    collects = json.loads(data)
+
+  def sundayafterchristmas(year):
+    return date(year,12,26) + relativedelta(weekday=calendar.SUNDAY)
+
+  def sundayafterepiphany(year):
+    return date(year,1,7) + relativedelta(weekday=calendar.SUNDAY)
+
+  def getrecord(data, day):
+    for i in data:
+      if i['day'] == day:
+        return i
+
+  def liturgydate(day, year):
+    # special case: thanksgiving-day on fourth Thursday in November
+    if day == 'thanksgiving-day':
+      return date(year,11,22) + relativedelta(weekday=calendar.THURSDAY)
+
+    calculator = getrecord(calcdates, day)
+    if not calculator:
+      raise Exception ("Calculation data for day " + day + " not found.")
+    method = calculator['relative']
+    value = calculator['value']
+
+    # methods = ["xmas-last", "date", "eiphany1", "easter", "xmas-next"]
+    if method == 'xmas-last':
+      return sundayafterchristmas(year-1) + relativedelta(days=int(value))
+
+    if method == 'xmas-next':
+      return sundayafterchristmas(year) + relativedelta(days=int(value))
+
+    if method == 'epiphany1':
+      return sundayafterepiphany(year) + relativedelta(days=int(value))
+
+    if method == 'easter':
+      return easter(year) + relativedelta(days=int(value))
+
+    if method == 'date':
+      when = date.fromisoformat(value)
+      return date(year, when.month, when.day)
+
+    raise Exception("Invalid method encountered: " + method)
+
+  def lectionarytitle(day, year):
+    collect = getrecord(collects, day)
+    if not collect:
+      raise Exception ("Title or day " + day + " not found.")
+    return collect['title']
+
+  def lectionaryyear(year):
+    # Working backwards, 1900 would be year a!
+    year = int(year)
+    if year < 1900:
+      raise Exception ("Invalid year " + str(year) + ": only 1900 and later are supported.")
+    year = (year - 1900) % 3
+    if year == 0: return 'a'
+    elif year == 1: return 'b'
+    else: return 'c'
+
+  def header(day, year):
+    result = "---\n"
+    result += "title: " + lectionarytitle(day, year) + "\n"
+    result += "date: " + str(liturgydate(day, year)) + "\n"
+    result += "lectionaryyear: " + lectionaryyear(year) + "\n"
+    result += "proper: " + day + "\n"
+    return result
+
+
+
+  def choosetemplateindir(day, year, directory):
+    directory = templatesdir + "/" + directory
+    candidate = Path(directory + "/" + day + ".txt")
+    if candidate.is_file(): return candidate
+
+    for s in seasons:
+      if day.find(s) >= 0:
+        candidate = Path(directory + "/" + s + ".txt")
+        if candidate.is_file(): return candidate
+
+    candidate = Path(directory + "/" + "default" + ".txt")
+    if candidate.is_file(): return candidate
+
+    return ""
+
+  def choosetemplate(day, year):
+    year = str(year)
+
+    c = choosetemplateindir(day, year, year)
+    if c: return str(c)
+
+    c = choosetemplateindir(day, year, "year" + lectionaryyear(year))
+    if c: return str(c)
+
+    c = choosetemplateindir(day, year, "default")
+    return str(c)
+
+
+  def generateliturgy(day, year):
+    result = header(day, year)
+    template = choosetemplate('thanksgiving-day', 2022)
+    with open(template, "r") as f:
+      for line in f:
+        result += line
+    return result
+
+  print (generateliturgy('thanksgiving-day', 2022))
+  print ("-----------------------------------------")
+  print (generateliturgy('proper-21', 2022))
+
+
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+---
+title: Thanksgiving Day
+date: 2022-11-24
+lectionaryyear: c
+proper: thanksgiving-day
+rite: Holy Eucharist
+bcppage: 355ff.
+---
+
+## We Gather in God's Name
+{{% he/greeting/blessedbegod %}}
+{{% he/collect-purity %}}
+{{% he/songofpraise/gloriaexcelsis %}}
+{{% he/propercollect %}}
+{{% rubric-sit %}}
+
+## We Hear God's Word
+{{% lesson "first" /%}}
+{{% he/psalm/responsively /%}}
+{{% lesson "second" /%}}
+{{% he/gospel /%}}
+{{% he/homily/brief %}}
+
+## We Respond in Faith
+{{% he/creed/nicene %}}
+{{% he/pop/hearourprayer %}}
+{{% he/confession %}}
+{{% he/peace %}}
+{{% stt/announcements %}}
+
+## We Offer Ourselves To God
+{{% he/offertory %}}
+{{% he/eucharisticprayer/a /%}}
+{{% he/lordsprayer/1 %}}
+{{% he/fraction/short %}}
+
+## We Receive the Gift of God
+{{% stt/2021/communion %}}
+{{% he/postcommunion/eternal %}}
+{{% he/blessing/thepeace %}}
+{{% he/processional %}}
+{{% he/dismissal/goinpeace %}}
+{{% nrsv %}}
+
+-----------------------------------------
+---
+title: Proper 21
+date: 2022-10-02
+lectionaryyear: c
+proper: proper-21
+rite: Holy Eucharist
+bcppage: 355ff.
+---
+
+## We Gather in God's Name
+{{% he/greeting/blessedbegod %}}
+{{% he/collect-purity %}}
+{{% he/songofpraise/gloriaexcelsis %}}
+{{% he/propercollect %}}
+{{% rubric-sit %}}
+
+## We Hear God's Word
+{{% lesson "first" /%}}
+{{% he/psalm/responsively /%}}
+{{% lesson "second" /%}}
+{{% he/gospel /%}}
+{{% he/homily/brief %}}
+
+## We Respond in Faith
+{{% he/creed/nicene %}}
+{{% he/pop/hearourprayer %}}
+{{% he/confession %}}
+{{% he/peace %}}
+{{% stt/announcements %}}
+
+## We Offer Ourselves To God
+{{% he/offertory %}}
+{{% he/eucharisticprayer/a /%}}
+{{% he/lordsprayer/1 %}}
+{{% he/fraction/short %}}
+
+## We Receive the Gift of God
+{{% stt/2021/communion %}}
+{{% he/postcommunion/eternal %}}
+{{% he/blessing/thepeace %}}
+{{% he/processional %}}
+{{% he/dismissal/goinpeace %}}
+{{% nrsv %}}
+
+#+end_example
+
+** Loop over the whole year
+- Does not move movable dates or pay attention to precedence
+- Be sure to leave out:
+  -  epiphanies that happen on or after last-sunday-after-the-epiphany
+  - propers that happen on or before trinity-sunday
+  - second-sunday-after-christmas if it occurs after the-epiphany
+
+#+BEGIN_SRC python :python python3 :results output
+  from dateutil.easter import *
+  from dateutil.relativedelta import *
+  from datetime import *
+  import calendar
+  import json
+  from pathlib import Path
+
+  templatesdir = "src/templates"
+  calcdatesfile = 'output/calcdates.json'
+  collectsfile = 'output/bcpcollects.json'
+  seasons = ('advent', 'christmas', 'epiphany', 'lent', 'easter', 'proper')
+
+  calcdates = []
+  with open(calcdatesfile, "r") as f:
+    data = f.read()
+    calcdates = json.loads(data)
+
+  collects = []
+  with open(collectsfile, "r") as f:
+    data = f.read()
+    collects = json.loads(data)
+
+  def sundayafterchristmas(year):
+    return date(year,12,26) + relativedelta(weekday=calendar.SUNDAY)
+
+  def sundayafterepiphany(year):
+    return date(year,1,7) + relativedelta(weekday=calendar.SUNDAY)
+
+  def getrecord(data, day):
+    for i in data:
+      if i['day'] == day:
+        return i
+
+  def liturgydate(day, year):
+    year = int(year)
+
+    # special case: thanksgiving-day on fourth Thursday in November
+    if day == 'thanksgiving-day':
+      return date(year,11,22) + relativedelta(weekday=calendar.THURSDAY)
+
+    calculator = getrecord(calcdates, day)
+    if not calculator:
+      raise Exception ("Calculation data for day " + day + " not found.")
+    method = calculator['relative']
+    value = calculator['value']
+
+    # methods = ["xmas-last", "date", "eiphany1", "easter", "xmas-next"]
+    if method == 'xmas-last':
+      return sundayafterchristmas(year-1) + relativedelta(days=int(value))
+
+    if method == 'xmas-next':
+      return sundayafterchristmas(year) + relativedelta(days=int(value))
+
+    if method == 'epiphany1':
+      return sundayafterepiphany(year) + relativedelta(days=int(value))
+
+    if method == 'easter':
+      return easter(year) + relativedelta(days=int(value))
+
+    if method == 'date':
+      when = date.fromisoformat(value)
+      return date(year, when.month, when.day)
+
+    raise Exception("Invalid method encountered: " + method)
+
+  def lectionarytitle(day, year):
+    collect = getrecord(collects, day)
+    if not collect:
+      raise Exception ("Title or day " + day + " not found.")
+    return collect['title']
+
+  def lectionaryyear(year):
+    # Working backwards, 1900 would be year a!
+    year = int(year)
+    if year < 1900:
+      raise Exception ("Invalid year " + str(year) + ": only 1900 and later are supported.")
+    year = (year - 1900) % 3
+    if year == 0: return 'a'
+    elif year == 1: return 'b'
+    else: return 'c'
+
+  def header(day, year):
+    result = "---\n"
+    result += "title: " + lectionarytitle(day, year) + "\n"
+    result += "date: " + str(liturgydate(day, year)) + "\n"
+    result += "lectionaryyear: " + lectionaryyear(year) + "\n"
+    result += "proper: " + day + "\n"
+    return result
+
+  def choosetemplateindir(day, year, directory):
+    directory = templatesdir + "/" + directory
+    candidate = Path(directory + "/" + day + ".txt")
+    if candidate.is_file(): return candidate
+
+    for s in seasons:
+      if day.find(s) >= 0:
+        candidate = Path(directory + "/" + s + ".txt")
+        if candidate.is_file(): return candidate
+
+    candidate = Path(directory + "/" + "default" + ".txt")
+    if candidate.is_file(): return candidate
+
+    return ""
+
+  def choosetemplate(day, year):
+    year = str(year)
+
+    c = choosetemplateindir(day, year, year)
+    if c: return str(c)
+
+    c = choosetemplateindir(day, year, "year" + lectionaryyear(year))
+    if c: return str(c)
+
+    c = choosetemplateindir(day, year, "default")
+    return str(c)
+
+  def generateliturgy(day, year):
+    result = header(day, year)
+    template = choosetemplate('thanksgiving-day', 2022)
+    with open(template, "r") as f:
+      for line in f:
+        result += line
+    return result
+
+  def batchliturgies(year):
+    for d in calcdates:
+      dday = d['day']
+      ddate = liturgydate(dday, year)
+
+      # skip second-sunday-after-christmas if it occurs after the-epiphany
+      if dday == 'second-sunday-after-christmas':
+        if ddate > date(year,1,6):
+          continue
+
+      # skip epiphanies that happen on or after last-sunday-after-the-epiphany
+      # exploiting a happy difference to not skip last-sunday-after-THE-epiphany
+      if dday.find('after-epiphany') >= 0:
+        if ddate >= liturgydate('last-sunday-after-the-epiphany', year):
+          continue
+
+      # skip propers that happen on or before trinity-sunday
+      if dday.find('proper') >= 0:
+        if ddate <=  liturgydate('trinity-sunday', year):
+          continue
+
+      print (dday + ": " + str(ddate))
+
+  batchliturgies(2022)
+  # print ("dates = " + ", ".join(map(str,calculateddates)))
+  # print ("dates = " + str(len(calculateddates)))
+  # print (generateliturgy('proper-21', 2022))
+  print ("calcdates = " + str(len(calcdates)))
+
+
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+first-sunday-of-advent: 2021-11-28
+second-sunday-of-advent: 2021-12-05
+third-sunday-of-advent: 2021-12-12
+fourth-sunday-of-advent: 2021-12-19
+christmas-day-i: 2022-12-25
+christmas-day-ii: 2022-12-25
+christmas-day-iii: 2022-12-25
+first-sunday-after-christmas: 2021-12-26
+holy-name: 2022-01-01
+second-sunday-after-christmas: 2022-01-02
+the-epiphany: 2022-01-06
+first-sunday-after-epiphany: 2022-01-09
+second-sunday-after-epiphany: 2022-01-16
+third-sunday-after-epiphany: 2022-01-23
+fourth-sunday-after-epiphany: 2022-01-30
+fifth-sunday-after-epiphany: 2022-02-06
+sixth-sunday-after-epiphany: 2022-02-13
+seventh-sunday-after-epiphany: 2022-02-20
+last-sunday-after-the-epiphany: 2022-02-27
+ash-wednesday: 2022-03-02
+first-sunday-in-lent: 2022-03-06
+second-sunday-in-lent: 2022-03-13
+third-sunday-in-lent: 2022-03-20
+fourth-sunday-in-lent: 2022-03-27
+fifth-sunday-in-lent: 2022-04-03
+palm-sunday-liturgy-of-the-word: 2022-04-10
+palm-sunday-liturgy-of-the-palms: 2022-04-10
+monday-in-holy-week: 2022-04-11
+tuesday-in-holy-week: 2022-04-12
+wednesday-in-holy-week: 2022-04-13
+maundy-thursday: 2022-04-14
+good-friday: 2022-04-15
+holy-saturday: 2022-04-16
+easter-day-the-great-vigil: 2022-04-16
+easter-day-principal-service: 2022-04-17
+easter-day-evening-service: 2022-04-17
+monday-in-easter-week: 2022-04-18
+tuesday-in-easter-week: 2022-04-19
+wednesday-in-easter-week: 2022-04-20
+thursday-in-easter-week: 2022-04-21
+friday-in-easter-week: 2022-04-22
+saturday-in-easter-week: 2022-04-23
+second-sunday-of-easter: 2022-04-24
+third-sunday-of-easter: 2022-05-01
+fourth-sunday-of-easter: 2022-05-08
+fifth-sunday-of-easter: 2022-05-15
+sixth-sunday-of-easter: 2022-05-22
+ascension-day: 2022-05-26
+seventh-sunday-of-easter: 2022-05-29
+day-of-pentecost-early-or-vigil-service: 2022-06-05
+day-of-pentecost-principal-service: 2022-06-05
+trinity-sunday: 2022-06-12
+proper-6: 2022-06-19
+proper-7: 2022-06-26
+proper-8: 2022-07-03
+proper-9: 2022-07-10
+proper-10: 2022-07-17
+proper-11: 2022-07-24
+proper-12: 2022-07-31
+proper-13: 2022-08-07
+proper-14: 2022-08-14
+proper-15: 2022-08-21
+proper-16: 2022-08-28
+proper-17: 2022-09-04
+proper-18: 2022-09-11
+proper-19: 2022-09-18
+proper-20: 2022-09-25
+proper-21: 2022-10-02
+proper-22: 2022-10-09
+proper-23: 2022-10-16
+proper-24: 2022-10-23
+proper-25: 2022-10-30
+proper-26: 2022-11-06
+proper-27: 2022-11-13
+proper-28: 2022-11-20
+proper-29-christ-the-king: 2022-11-27
+st-andrew: 2022-11-30
+st-thomas: 2022-12-21
+st-stephen: 2022-12-26
+st-john: 2022-12-27
+holy-innocents: 2022-12-28
+confession-of-st-peter: 2022-01-18
+conversion-of-st-paul: 2022-01-25
+the-presentation: 2022-02-02
+st-matthias: 2022-02-24
+st-joseph: 2022-03-19
+the-annunciation: 2022-03-25
+st-mark: 2022-04-25
+st-philip-&-st-james: 2022-05-01
+the-visitation: 2022-05-31
+st-barnabas: 2022-06-11
+nativity-of-st-john-the-baptist: 2022-06-24
+st-peter-&-st-paul: 2022-06-29
+independence-day: 2022-07-04
+st-mary-magdalene: 2022-07-22
+st-james: 2022-07-25
+the-transfiguration: 2022-08-06
+st-mary-the-virgin: 2022-08-15
+st-bartholomew: 2022-08-24
+holy-cross-day: 2022-09-14
+st-matthew: 2022-09-21
+st-michael-&-all-angels: 2022-09-29
+st-luke: 2022-10-18
+st-james-of-jerusalem: 2022-10-23
+st-simon-&-st-jude: 2022-10-28
+all-saints-day: 2022-11-01
+calcdates = 112
+#+end_example
+
+
+** Build in bulk
+- Does not move movable dates or pay attention to precedence
+
+#+BEGIN_SRC python :python python3 :results output
+  from dateutil.easter import *
+  from dateutil.relativedelta import *
+  from datetime import *
+  import calendar
+  import json
+  from pathlib import Path
+  import os
+
+  templatesdir = "src/templates"
+  outputdir = "output/2022"
+  calcdatesfile = 'output/calcdates.json'
+  collectsfile = 'output/bcpcollects.json'
+  seasons = ('advent', 'christmas', 'epiphany', 'lent', 'easter', 'proper')
+
+  calcdates = []
+  with open(calcdatesfile, "r") as f:
+    data = f.read()
+    calcdates = json.loads(data)
+
+  collects = []
+  with open(collectsfile, "r") as f:
+    data = f.read()
+    collects = json.loads(data)
+
+  def sundayafterchristmas(year):
+    return date(year,12,26) + relativedelta(weekday=calendar.SUNDAY)
+
+  def sundayafterepiphany(year):
+    return date(year,1,7) + relativedelta(weekday=calendar.SUNDAY)
+
+  def getrecord(data, day):
+    for i in data:
+      if i['day'] == day:
+        return i
+
+  def liturgydate(day, year):
+    year = int(year)
+
+    # special case: thanksgiving-day on fourth Thursday in November
+    if day == 'thanksgiving-day':
+      return date(year,11,22) + relativedelta(weekday=calendar.THURSDAY)
+
+    calculator = getrecord(calcdates, day)
+    if not calculator:
+      raise Exception ("Calculation data for day " + day + " not found.")
+    method = calculator['relative']
+    value = calculator['value']
+
+    # methods = ["xmas-last", "date", "eiphany1", "easter", "xmas-next"]
+    if method == 'xmas-last':
+      return sundayafterchristmas(year-1) + relativedelta(days=int(value))
+
+    if method == 'xmas-next':
+      return sundayafterchristmas(year) + relativedelta(days=int(value))
+
+    if method == 'epiphany1':
+      return sundayafterepiphany(year) + relativedelta(days=int(value))
+
+    if method == 'easter':
+      return easter(year) + relativedelta(days=int(value))
+
+    if method == 'date':
+      when = date.fromisoformat(value)
+      return date(year, when.month, when.day)
+
+    raise Exception("Invalid method encountered: " + method)
+
+  def lectionarytitle(day, year):
+    collect = getrecord(collects, day)
+    if not collect:
+      raise Exception ("Title or day " + day + " not found.")
+    return collect['title']
+
+  def lectionaryyear(year):
+    # Working backwards, 1900 would be year a!
+    year = int(year)
+    if year < 1900:
+      raise Exception ("Invalid year " + str(year) + ": only 1900 and later are supported.")
+    year = (year - 1900) % 3
+    if year == 0: return 'a'
+    elif year == 1: return 'b'
+    else: return 'c'
+
+  def header(day, year):
+    result = "---\n"
+    result += "title: " + lectionarytitle(day, year) + "\n"
+    result += "date: " + str(liturgydate(day, year)) + "\n"
+    result += "lectionaryyear: " + lectionaryyear(year) + "\n"
+    result += "proper: " + day + "\n"
+    return result
+
+  def choosetemplateindir(day, year, directory):
+    directory = templatesdir + "/" + directory
+    candidate = Path(directory + "/" + day + ".txt")
+    if candidate.is_file(): return candidate
+
+    for s in seasons:
+      if day.find(s) >= 0:
+        candidate = Path(directory + "/" + s + ".txt")
+        if candidate.is_file(): return candidate
+
+    candidate = Path(directory + "/" + "default" + ".txt")
+    if candidate.is_file(): return candidate
+
+    return ""
+
+  def choosetemplate(day, year):
+    year = str(year)
+
+    c = choosetemplateindir(day, year, year)
+    if c: return str(c)
+
+    c = choosetemplateindir(day, year, "year" + lectionaryyear(year))
+    if c: return str(c)
+
+    c = choosetemplateindir(day, year, "default")
+    return str(c)
+
+  def generateliturgy(day, year):
+    result = header(day, year)
+    template = choosetemplate('thanksgiving-day', 2022)
+    with open(template, "r") as f:
+      for line in f:
+        result += line
+    return result
+
+  def batchliturgies(year):
+    os.makedirs(outputdir, exist_ok=True)
+
+    for d in calcdates:
+      dday = d['day']
+      ddate = liturgydate(dday, year)
+
+      # skip second-sunday-after-christmas if it occurs after the-epiphany
+      if dday == 'second-sunday-after-christmas':
+        if ddate > date(year,1,6):
+          continue
+
+      # skip epiphanies that happen on or after last-sunday-after-the-epiphany
+      # exploiting a happy difference to not skip last-sunday-after-THE-epiphany
+      if dday.find('after-epiphany') >= 0:
+        if ddate >= liturgydate('last-sunday-after-the-epiphany', year):
+          continue
+
+      # skip propers that happen on or before trinity-sunday
+      if dday.find('proper') >= 0:
+        if ddate <=  liturgydate('trinity-sunday', year):
+          continue
+
+      print ("Generating liturgy for " + dday + ": " + str(ddate))
+      liturgy = generateliturgy(dday, year)
+      with open (outputdir + "/" + dday + ".md", "w") as t:
+        t.write(liturgy)
+        t.write("\n")
+
+  batchliturgies(2022)
+
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+Generating liturgy for first-sunday-of-advent: 2021-11-28
+Generating liturgy for second-sunday-of-advent: 2021-12-05
+Generating liturgy for third-sunday-of-advent: 2021-12-12
+Generating liturgy for fourth-sunday-of-advent: 2021-12-19
+Generating liturgy for christmas-day-i: 2022-12-25
+Generating liturgy for christmas-day-ii: 2022-12-25
+Generating liturgy for christmas-day-iii: 2022-12-25
+Generating liturgy for first-sunday-after-christmas: 2021-12-26
+Generating liturgy for holy-name: 2022-01-01
+Generating liturgy for second-sunday-after-christmas: 2022-01-02
+Generating liturgy for the-epiphany: 2022-01-06
+Generating liturgy for first-sunday-after-epiphany: 2022-01-09
+Generating liturgy for second-sunday-after-epiphany: 2022-01-16
+Generating liturgy for third-sunday-after-epiphany: 2022-01-23
+Generating liturgy for fourth-sunday-after-epiphany: 2022-01-30
+Generating liturgy for fifth-sunday-after-epiphany: 2022-02-06
+Generating liturgy for sixth-sunday-after-epiphany: 2022-02-13
+Generating liturgy for seventh-sunday-after-epiphany: 2022-02-20
+Generating liturgy for last-sunday-after-the-epiphany: 2022-02-27
+Generating liturgy for ash-wednesday: 2022-03-02
+Generating liturgy for first-sunday-in-lent: 2022-03-06
+Generating liturgy for second-sunday-in-lent: 2022-03-13
+Generating liturgy for third-sunday-in-lent: 2022-03-20
+Generating liturgy for fourth-sunday-in-lent: 2022-03-27
+Generating liturgy for fifth-sunday-in-lent: 2022-04-03
+Generating liturgy for palm-sunday-liturgy-of-the-word: 2022-04-10
+Generating liturgy for palm-sunday-liturgy-of-the-palms: 2022-04-10
+Generating liturgy for monday-in-holy-week: 2022-04-11
+Generating liturgy for tuesday-in-holy-week: 2022-04-12
+Generating liturgy for wednesday-in-holy-week: 2022-04-13
+Generating liturgy for maundy-thursday: 2022-04-14
+Generating liturgy for good-friday: 2022-04-15
+Generating liturgy for holy-saturday: 2022-04-16
+Generating liturgy for easter-day-the-great-vigil: 2022-04-16
+Generating liturgy for easter-day-principal-service: 2022-04-17
+Generating liturgy for easter-day-evening-service: 2022-04-17
+Generating liturgy for monday-in-easter-week: 2022-04-18
+Generating liturgy for tuesday-in-easter-week: 2022-04-19
+Generating liturgy for wednesday-in-easter-week: 2022-04-20
+Generating liturgy for thursday-in-easter-week: 2022-04-21
+Generating liturgy for friday-in-easter-week: 2022-04-22
+Generating liturgy for saturday-in-easter-week: 2022-04-23
+Generating liturgy for second-sunday-of-easter: 2022-04-24
+Generating liturgy for third-sunday-of-easter: 2022-05-01
+Generating liturgy for fourth-sunday-of-easter: 2022-05-08
+Generating liturgy for fifth-sunday-of-easter: 2022-05-15
+Generating liturgy for sixth-sunday-of-easter: 2022-05-22
+Generating liturgy for ascension-day: 2022-05-26
+Generating liturgy for seventh-sunday-of-easter: 2022-05-29
+Generating liturgy for day-of-pentecost-early-or-vigil-service: 2022-06-05
+Generating liturgy for day-of-pentecost-principal-service: 2022-06-05
+Generating liturgy for trinity-sunday: 2022-06-12
+Generating liturgy for proper-6: 2022-06-19
+Generating liturgy for proper-7: 2022-06-26
+Generating liturgy for proper-8: 2022-07-03
+Generating liturgy for proper-9: 2022-07-10
+Generating liturgy for proper-10: 2022-07-17
+Generating liturgy for proper-11: 2022-07-24
+Generating liturgy for proper-12: 2022-07-31
+Generating liturgy for proper-13: 2022-08-07
+Generating liturgy for proper-14: 2022-08-14
+Generating liturgy for proper-15: 2022-08-21
+Generating liturgy for proper-16: 2022-08-28
+Generating liturgy for proper-17: 2022-09-04
+Generating liturgy for proper-18: 2022-09-11
+Generating liturgy for proper-19: 2022-09-18
+Generating liturgy for proper-20: 2022-09-25
+Generating liturgy for proper-21: 2022-10-02
+Generating liturgy for proper-22: 2022-10-09
+Generating liturgy for proper-23: 2022-10-16
+Generating liturgy for proper-24: 2022-10-23
+Generating liturgy for proper-25: 2022-10-30
+Generating liturgy for proper-26: 2022-11-06
+Generating liturgy for proper-27: 2022-11-13
+Generating liturgy for proper-28: 2022-11-20
+Generating liturgy for proper-29-christ-the-king: 2022-11-27
+Generating liturgy for st-andrew: 2022-11-30
+Generating liturgy for st-thomas: 2022-12-21
+Generating liturgy for st-stephen: 2022-12-26
+Generating liturgy for st-john: 2022-12-27
+Generating liturgy for holy-innocents: 2022-12-28
+Generating liturgy for confession-of-st-peter: 2022-01-18
+Generating liturgy for conversion-of-st-paul: 2022-01-25
+Generating liturgy for the-presentation: 2022-02-02
+Generating liturgy for st-matthias: 2022-02-24
+Generating liturgy for st-joseph: 2022-03-19
+Generating liturgy for the-annunciation: 2022-03-25
+Generating liturgy for st-mark: 2022-04-25
+Generating liturgy for st-philip-&-st-james: 2022-05-01
+Generating liturgy for the-visitation: 2022-05-31
+Generating liturgy for st-barnabas: 2022-06-11
+Generating liturgy for nativity-of-st-john-the-baptist: 2022-06-24
+Generating liturgy for st-peter-&-st-paul: 2022-06-29
+Generating liturgy for independence-day: 2022-07-04
+Generating liturgy for st-mary-magdalene: 2022-07-22
+Generating liturgy for st-james: 2022-07-25
+Generating liturgy for the-transfiguration: 2022-08-06
+Generating liturgy for st-mary-the-virgin: 2022-08-15
+Generating liturgy for st-bartholomew: 2022-08-24
+Generating liturgy for holy-cross-day: 2022-09-14
+Generating liturgy for st-matthew: 2022-09-21
+Generating liturgy for st-michael-&-all-angels: 2022-09-29
+Generating liturgy for st-luke: 2022-10-18
+Generating liturgy for st-james-of-jerusalem: 2022-10-23
+Generating liturgy for st-simon-&-st-jude: 2022-10-28
+Generating liturgy for all-saints-day: 2022-11-01
+#+end_example
+
+
+** OPEN Make into CLI
+command line options for year, from beginning of year, no clobber, output directory
