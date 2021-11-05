@@ -10151,5 +10151,196 @@ calcdates = 112
 : Writing liturgy for proper-28: 2021-11-14
 
 
-** OPEN Make into CLI
+**  Make into CLI
 command line options for year, from beginning of year, no clobber, output directory, templates directory, dry-run
+
+* Fix up lectionary page texts, needed for 2022
+** Start with old code: can clean it up?
+
+#+BEGIN_SRC python :python python3 :results output
+  import os, urllib.request, urllib.parse, re, shutil, time, subprocess
+  from bs4 import BeautifulSoup
+  import bs4
+
+  def textfilename(ref):
+      result = re.sub("[-,–.:;()\* \[\]]", "", ref)
+      return result.casefold()
+
+  refs = {}
+  tagsInDivs = {}
+  count = 0
+  indentClasses = ["poetryText", "psalmText", "poetryIndent", "lessonIndent"]
+
+  srcfiles = subprocess.check_output(["find ../lectionarypage.net -name *.html"], shell=True, text=True).split("\n")
+  print("Count of files: " + str(len(srcfiles)))
+
+  desthtml = "output/readings/lectionarypage.net/html/"
+  desttext = "output/readings/lectionarypage.net/text/"
+  destmark = "output/readings/lectionarypage.net/md/"
+  os.makedirs(desthtml, exist_ok=True)
+  os.makedirs(desttext, exist_ok=True)
+  os.makedirs(destmark, exist_ok=True)
+
+  for s in srcfiles:
+      # Skip blank lines
+      if len(s)==0:
+        continue
+      # print("Processing " + s)
+      count = count + 1
+
+      soup = False
+      try:
+          soup = BeautifulSoup(open(s), 'html.parser')
+      except Exception:
+          print ("FAILED to make BeautifulSoup for " + s)
+          continue
+
+      # retain linebreaks
+      #for br in soup.find_all("br"):
+          #br.replace_with("BREAK")
+
+      for article in soup('article'):
+          citations = article.find_all('h3', {'class': 'lessonCitation'})
+          latin = article.find_all(class_='psalmLatin')
+          latinTitle = ""
+          psalmCount = 0
+          divs = article.find_all('div')
+          if (len(citations) != len(divs)):
+              print("WARNING: citations ({}) > div's({}) in {}".format(len(citations), len(divs), s))
+              continue
+          for i in range(len(citations)):
+              c = citations[i]
+              d = divs[i]
+
+              citation = c.string.strip()
+              if ("Psalm" in citation):
+                  try:
+                      latinTitle = latin[psalmCount].getText()
+                  except Exception:
+                      print ("Failed to de-ref latin title {} in file {}".format(psalmCount, s))
+                      print (latin)
+                      print (d.getText())
+                  psalmCount += 1
+
+              filename = textfilename(citation)
+              if filename in refs:
+                  continue
+              refs[filename] = citation
+
+              if filename == "psalm98":
+                  print ("Found psalm98 in " + s)
+
+              with open (desthtml + filename + ".html", "w") as t:
+                  if latinTitle:
+                      t.write("<p class='psalmLatin'>{}</p>\n".format(latinTitle))
+                  t.write("{}".format(d))
+
+              # Fix up reading before exporting to plain text
+              # Change small caps to all caps
+              for e in d.find_all('span', {'class': 'lordSmallCaps'}):
+                  e.string = e.getText().upper()
+                  e.unwrap()
+              # Remove initial caps
+              for e in d.find_all('span', {'class': 'initCap'}):
+                  e.unwrap()
+
+
+              with open(desttext + filename + ".txt", "w") as t:
+                  if latinTitle:
+                      t.write("{}\n\n".format(latinTitle))
+                  t.write(d.getText().lstrip())
+
+              with open (destmark + filename, "w") as t:
+                  if latinTitle:
+                      t.write("_{}_\n".format(latinTitle))
+                  lastClass = ""
+                  psalmVerseOdd = True
+
+                  # Error checking: these were eliminated
+                  for e in d.contents:
+                      if e == '\n':
+                          continue
+                      if (type(e) == bs4.element.NavigableString):
+                          if (e.strip() != ''):
+                              print ("TODO: Fix navigable string in {} ({}): {}".format(s, citation, e))
+                          continue
+                      if (type(e) != bs4.element.Tag):
+                          if (type(e) != bs4.element.Comment):
+                              print ("Non-tag in {}: {}:{}".format(s, type(e), e))
+                          continue
+
+                  wasIndented = False
+                  prevEnding = ""
+                  for e in d.descendants:
+                      # More error checking: these were eliminated
+                      if type(e) == bs4.element.NavigableString or type(e) == bs4.element.Comment:
+                          continue
+                      if e.name in tagsInDivs:
+                          tagsInDivs[e.name] = tagsInDivs[e.name] + 1
+                      else:
+                          tagsInDivs[e.name] = 1
+                      if (e.name == 'i'):
+                          print("{}: {}".format(s,e))
+                      if (e.name == 'blockquote'):
+                          print("{}: {}".format(s,e))
+                      if e.has_attr('class'):
+                          cl = e.attrs['class'][0]
+                          if cl in tagsInDivs:
+                              tagsInDivs[cl] = tagsInDivs[cl] + 1
+                          else:
+                              tagsInDivs[cl] = 1
+                          if cl != re.sub(r'[^a-zA-z]', '', cl):
+                              print("TODO: bad class for tag {} in {}".format(e, s))
+                          if cl == 'collectText':
+                              print("TODO: bad class for tag {} in {}".format(e, s))
+
+                      if (e.name == "br"):
+                          #t.write('\n')
+                          continue
+
+                      line = ""
+                      if ("Psalm" in citation):
+                          text = e.getText().replace(" *", " \*  ")
+                          if psalmVerseOdd:
+                              line = line + "\n> " + text
+                          else:
+                              line = line + "\n> **" + text.strip() + "**\n"
+                          line = line + "  "
+                          psalmVerseOdd = not psalmVerseOdd
+                      elif ("Canticle" in citation):
+                          text = e.getText().strip().replace(" *", " \*").replace("\n", "  \n")
+                          line = "> **" + text.strip() + "**\n"
+                      else:
+                          newClass = None
+                          if e.has_attr('class'):
+                             newClass = e.attrs['class'][0]
+                          lineEnd = "\n\n"
+                          if newClass in indentClasses:
+                              line = line + "> "
+                              lineEnd = "\n"
+                              wasIndented = True
+                          elif wasIndented:
+                              line = line + "\n"
+                              wasIndented = False
+                          line = line + e.getText().replace("\n", " ").lstrip() + lineEnd
+                          line = re.sub(r' +', ' ', line)
+                      if len(line.strip()) > 0:
+                          t.write(prevEnding + line.rstrip())
+                          prevEnding = line[len(line.rstrip()):]
+      #if count>0:
+          #exit()
+
+  print("Unique Refs count = " + str(len(refs)))
+  print("Tags in div's: {}".format(tagsInDivs))
+
+
+#+END_SRC
+
+#+RESULTS:
+: Count of files: 236
+: Found psalm98 in ../lectionarypage.net/YearABC_RCL/Christmas/ChrsDay3_RCL.html
+: FAILED to make BeautifulSoup for ../lectionarypage.net/YearC_RCL/Easter/CEasVigil_RCL.html
+: FAILED to make BeautifulSoup for ../lectionarypage.net/YearB_RCL/Easter/BEasVigil_RCL.html
+: FAILED to make BeautifulSoup for ../lectionarypage.net/YearA_RCL/Easter/AEasVigil_RCL.html
+: Unique Refs count = 928
+: Tags in div's: {'p': 5308, 'poetryText': 1334, 'br': 4590, 'psalmText': 2122, 'lessonText': 1461, 'poetryIndent': 283, 'lessonIndent': 16}
