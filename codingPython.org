@@ -9869,7 +9869,7 @@ calcdates = 112
 #+end_example
 
 
-** Build in bulk
+** bulkLiturgist: Build in bulk
 - Does not move movable dates or pay attention to precedence
 
 #+BEGIN_SRC python :python python3 :results output
@@ -10344,3 +10344,319 @@ command line options for year, from beginning of year, no clobber, output direct
 : FAILED to make BeautifulSoup for ../lectionarypage.net/YearA_RCL/Easter/AEasVigil_RCL.html
 : Unique Refs count = 928
 : Tags in div's: {'p': 5308, 'poetryText': 1334, 'br': 4590, 'psalmText': 2122, 'lessonText': 1461, 'poetryIndent': 283, 'lessonIndent': 16}
+* Access odf file
+
+#+BEGIN_SRC python :python python3 :results output
+  from pyexcel_ods3 import get_data
+  data = get_data("testods.ods")
+  print(data)
+  print("----------")
+  import json
+  for sheet in data:
+    print("Sheet: "+ sheet)
+  print("----------")
+  for sheet in data:
+    print (data[sheet])
+  print("----------")
+  for sheet in data:
+    print(sheet)
+    print("rows:" + str(len(data[sheet])))
+    for row in range(0, 3):
+      print("cols:" + str(len(data[sheet][row])))
+      print(data[sheet][row][2])
+  print("----------")
+
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+OrderedDict([('Sheet1', [['Sheet 1', '', 'a'], ['', '', 'b'], ['', '', 'c'], ['', '', 'd']]), ('Sheet2', [['Sheet 2', '', 1], ['', '', 2], ['', '', 3], ['', '', 4]]), ('Sheet3', [['Sheet 3', '', 'uno'], ['', '', 'dos'], ['a', '', 'tres'], ['b', '', 'cuatro'], ['c']])])
+----------
+Sheet: Sheet1
+Sheet: Sheet2
+Sheet: Sheet3
+----------
+[['Sheet 1', '', 'a'], ['', '', 'b'], ['', '', 'c'], ['', '', 'd']]
+[['Sheet 2', '', 1], ['', '', 2], ['', '', 3], ['', '', 4]]
+[['Sheet 3', '', 'uno'], ['', '', 'dos'], ['a', '', 'tres'], ['b', '', 'cuatro'], ['c']]
+----------
+Sheet1
+rows:4
+cols:3
+a
+cols:3
+b
+cols:3
+c
+Sheet2
+rows:4
+cols:3
+1
+cols:3
+2
+cols:3
+3
+Sheet3
+rows:5
+cols:3
+uno
+cols:3
+dos
+cols:3
+tres
+----------
+#+end_example
+* WIP: Produce json of hymn titles?
+
+#+BEGIN_SRC python :python python3 :results output
+  from pyexcel_ods3 import get_data
+  data = get_data("testods.ods")
+  print(data)
+  print("----------")
+  import json
+  for sheet in data:
+    print("Sheet: "+ sheet)
+  print("----------")
+  for sheet in data:
+    print (data[sheet])
+  print("----------")
+  for sheet in data:
+    print(sheet)
+    print("rows:" + str(len(data[sheet])))
+    for row in range(0, 3):
+      print("cols:" + str(len(data[sheet][row])))
+      print(data[sheet][row][2])
+  print("----------")
+
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+OrderedDict([('Sheet1', [['Sheet 1', '', 'a'], ['', '', 'b'], ['', '', 'c'], ['', '', 'd']]), ('Sheet2', [['Sheet 2', '', 1], ['', '', 2], ['', '', 3], ['', '', 4]]), ('Sheet3', [['Sheet 3', '', 'uno'], ['', '', 'dos'], ['a', '', 'tres'], ['b', '', 'cuatro'], ['c']])])
+----------
+Sheet: Sheet1
+Sheet: Sheet2
+Sheet: Sheet3
+----------
+[['Sheet 1', '', 'a'], ['', '', 'b'], ['', '', 'c'], ['', '', 'd']]
+[['Sheet 2', '', 1], ['', '', 2], ['', '', 3], ['', '', 4]]
+[['Sheet 3', '', 'uno'], ['', '', 'dos'], ['a', '', 'tres'], ['b', '', 'cuatro'], ['c']]
+----------
+Sheet1
+rows:4
+cols:3
+a
+cols:3
+b
+cols:3
+c
+Sheet2
+rows:4
+cols:3
+1
+cols:3
+2
+cols:3
+3
+Sheet3
+rows:5
+cols:3
+uno
+cols:3
+dos
+cols:3
+tres
+----------
+#+end_example
+* combine hymnals into pretty json
+** Test out file format
+#+BEGIN_SRC python :python python3 :results output
+  import json
+
+  def report(title, data):
+         print(title + " (" + str(len(data)) + "): " + ', '.join(map(str, data)))
+
+  def get_elements(data, name):
+       results = []
+       for i in data:
+         if(i[name] not in results):
+           results.append(i[name])
+       return results
+
+  def analyze(filename):
+       print("--------------------")
+       print("analyze: " + filename + "\n")
+
+       with open(filename, "r") as f:
+         data = f.read()
+       j_data = json.loads(data)
+       return j_data
+
+
+
+
+  levas = analyze('../sharedprayers/data/levas.json')
+  hymnal = analyze('../sharedprayers/data/hymnal1982.json')
+  wlp = analyze('../sharedprayers/data/wlp.json')
+  data = [levas, hymnal, wlp]
+
+  with open ("../sharedprayers/data/hymnals.json", "w") as t:
+      t.write(json.dumps(data, indent=4))
+
+
+#+END_SRC
+
+#+RESULTS:
+: --------------------
+: analyze: ../sharedprayers/data/levas.json
+:
+: --------------------
+: analyze: ../sharedprayers/data/hymnal1982.json
+:
+: --------------------
+: analyze: ../sharedprayers/data/wlp.json
+:
+* check on consistency of lff2018.json
+#+BEGIN_SRC python :python python3 :results output
+  import json
+  import unicodedata
+
+  def report(title, data):
+         print(title + " (" + str(len(data)) + "): " + ', '.join(map(str, data)))
+
+  def get_elements(data, name):
+       results = []
+       for i in data:
+         if(i[name] not in results):
+           results.append(i[name])
+       return results
+
+  def strip_accents(text):
+    # src: https://stackoverflow.com/questions/44431730/how-to-replace-accented-characters
+       try:
+         text = unicode(text, 'utf-8')
+       except NameError:
+         pass
+       text = unicodedata.normalize('NFD', text)\
+         .encode('ascii', 'ignore')\
+         .decode('utf-8')
+       return str(text)
+
+  def analyze(filename):
+       print("--------------------")
+       print("analyze: " + filename + "\n")
+
+       with open(filename, "r") as f:
+         data = f.read()
+       lff = json.loads(data)
+
+       print ("Found " + str(len(lff)) + " records")
+
+       fields = []
+       for k in lff[0].keys():
+         fields.append(k)
+       print ("Found keys: " + ', '.join(fields))
+
+       optional_fields = ["notes", "second_lesson"]
+       slugs = []
+       for i in lff:
+         for k in i.keys():
+           if k not in fields:
+             print ("Found new key: " + k)
+         for f in fields:
+           if f in optional_fields:
+             continue
+           if f not in i.keys():
+             print ("Missing key: " + f)
+             print (i)
+         if i["slug"] in slugs:
+           print ("duplicate slug: " + i["slug"])
+         else:
+           slugs.append(i["slug"])
+         slug = i['slug']
+         if slug != strip_accents(slug):
+           print ("Accented slug: " + slug)
+
+  analyze('../lff2json/lff2018.json')
+  analyze('../sharedprayers/data/lff2018.json')
+  # analyze('../venite/commonprayer/src/assets/calendar/lff2018.json')
+
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+--------------------
+analyze: ../lff2json/lff2018.json
+
+Found 271 records
+Found keys: mm, dd, title, major_feast, slug, bio, rite1_collect, rite2_collect, first_lesson, psalm, notes, second_lesson, gospel, preface
+--------------------
+analyze: ../sharedprayers/data/lff2018.json
+
+Found 271 records
+Found keys: mm, dd, title, major_feast, slug, bio, rite1_collect, rite2_collect, first_lesson, psalm, notes, second_lesson, gospel, preface
+Accented slug: lff2018-óscar-romero
+Accented slug: lff2018-juana-inés-de-la-cruz
+Accented slug: lff2018-thomas-à-kempis
+Accented slug: lff2018-thérèse-of-lisieux
+#+end_example
+* extract lff2018.json into spreadsheet
+#+BEGIN_SRC python :python python3 :results output
+  import json
+  from calendar import month_name
+
+
+  months = []
+  for m in month_name[1:]:
+      months += [m]
+
+  def report(title, data):
+      print(title + " (" + str(len(data)) + "): " + ', '.join(map(str, data)))
+
+  def get_elements(data, name):
+      results = []
+      for i in data:
+          if(i[name] not in results):
+              results.append(i[name])
+      return results
+
+  def analyze(filename):
+      print("--------------------")
+      print("analyze: " + filename + "\n")
+
+      with open(filename, "r") as f:
+          data = f.read()
+      lff = json.loads(data)
+
+      # Fields in spreadsheet:
+      # 2022 date; Fixed Date; Movable Date; Order ; Code ;
+      # 2022 date: =DATE(A$1-1, 12, 21)
+
+      # keys: mm, dd, title, major_feast, slug, bio, rite1_collect, rite2_collect, first_lesson, psalm, notes, second_lesson, gospel, preface
+
+      print ("Found " + str(len(lff)) + " records")
+
+      with open ("output/lff2018keys.csv", "w") as t:
+          count = 801
+          advent4 = 'DATE($A$1,12,25) + 8 - WEEKDAY(DATE($A$1,12,25)) - 7 * 5'
+          for i in lff:
+              month = str(int(i["mm"]))
+              day = str(int(i["dd"]))
+              monthday = month + ',' +  day
+              result = '"=IF(DATE($A$1,' + monthday + ')>=' + advent4
+              result += ',  DATE($A$1-1,' + monthday + '), DATE($A$1,' + monthday + '))"'
+              result += ', "' + months[(int (i["mm"])-1)] + ' ' + str(int(i["dd"])) + '", ""'
+              result += ', "' + str(count) + '", "' + i['slug'] + '"' + '\n'
+              count += 1
+              t.write(result)
+
+  # analyze('../lff2json/lff2018.json')
+  analyze('../sharedprayers/data/lff2018.json')
+
+#+END_SRC
+
+#+RESULTS:
+: --------------------
+: analyze: ../sharedprayers/data/lff2018.json
+:
+: Found 271 records
