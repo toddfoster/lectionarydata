@@ -10559,6 +10559,7 @@ tres
 
        optional_fields = ["notes", "second_lesson"]
        slugs = []
+       has_second = []
        for i in lff:
          for k in i.keys():
            if k not in fields:
@@ -10576,6 +10577,10 @@ tres
          slug = i['slug']
          if slug != strip_accents(slug):
            print ("Accented slug: " + slug)
+         if "second_lesson" in i.keys():
+           has_second.append(slug)
+       print ("Has second lesson: " + str(len(has_second)))
+       print ("Has second lessons: " + ' '.join(has_second))
 
   analyze('../lff2json/lff2018.json')
   analyze('../sharedprayers/data/lff2018.json')
@@ -10590,15 +10595,15 @@ analyze: ../lff2json/lff2018.json
 
 Found 271 records
 Found keys: mm, dd, title, major_feast, slug, bio, rite1_collect, rite2_collect, first_lesson, psalm, notes, second_lesson, gospel, preface
+Has second lesson: 34
+Has second lessons: lff2018-holy-name-of-our-lord-jesus-christ lff2018-epiphany lff2018-confession-of-saint-peter-the-apostle lff2018-conversion-of-saint-paul-the-apostle lff2018-presentation lff2018-saint-matthias-the-apostle lff2018-saint-joseph lff2018-annunciation lff2018-saint-mark-the-evangelist lff2018-apostles-saint-philip-and-saint-james lff2018-visitation lff2018-saint-barnabas-the-apostle lff2018-nativity-of-saint-john-the-baptist lff2018-apostles-saint-peter-and-saint-paul lff2018-independence-day lff2018-saint-mary-magdalene lff2018-saint-james-the-apostle lff2018-transfiguration lff2018-saint-mary-the-virgin lff2018-saint-bartholomew-the-apostle lff2018-holy-cross-day lff2018-saint-matthew lff2018-saint-michael-and-all-angels lff2018-saint-luke-the-evangelist lff2018-saint-james-of-jerusalem lff2018-saint-simon-and-saint-jude lff2018-all-saints lff2018-all-souls lff2018-saint-andrew-the-apostle lff2018-saint-thomas-the-apostle lff2018-nativity-of-our-lord-jesus-christ lff2018-saint-stephen lff2018-saint-john lff2018-holy-innocents
 --------------------
 analyze: ../sharedprayers/data/lff2018.json
 
 Found 271 records
 Found keys: mm, dd, title, major_feast, slug, bio, rite1_collect, rite2_collect, first_lesson, psalm, notes, second_lesson, gospel, preface
-Accented slug: lff2018-óscar-romero
-Accented slug: lff2018-juana-inés-de-la-cruz
-Accented slug: lff2018-thomas-à-kempis
-Accented slug: lff2018-thérèse-of-lisieux
+Has second lesson: 34
+Has second lessons: lff2018-holy-name-of-our-lord-jesus-christ lff2018-epiphany lff2018-confession-of-saint-peter-the-apostle lff2018-conversion-of-saint-paul-the-apostle lff2018-presentation lff2018-saint-matthias-the-apostle lff2018-saint-joseph lff2018-annunciation lff2018-saint-mark-the-evangelist lff2018-apostles-saint-philip-and-saint-james lff2018-visitation lff2018-saint-barnabas-the-apostle lff2018-nativity-of-saint-john-the-baptist lff2018-apostles-saint-peter-and-saint-paul lff2018-independence-day lff2018-saint-mary-magdalene lff2018-saint-james-the-apostle lff2018-transfiguration lff2018-saint-mary-the-virgin lff2018-saint-bartholomew-the-apostle lff2018-holy-cross-day lff2018-saint-matthew lff2018-saint-michael-and-all-angels lff2018-saint-luke-the-evangelist lff2018-saint-james-of-jerusalem lff2018-saint-simon-and-saint-jude lff2018-all-saints lff2018-all-souls lff2018-saint-andrew-the-apostle lff2018-saint-thomas-the-apostle lff2018-nativity-of-our-lord-jesus-christ lff2018-saint-stephen lff2018-saint-john lff2018-holy-innocents
 #+end_example
 * extract lff2018.json into spreadsheet
 #+BEGIN_SRC python :python python3 :results output
@@ -10650,13 +10655,13 @@ Accented slug: lff2018-thérèse-of-lisieux
               count += 1
               t.write(result)
 
-  # analyze('../lff2json/lff2018.json')
-  analyze('../sharedprayers/data/lff2018.json')
+  analyze('../lff2json/lff2018.json')
+  #  analyze('../sharedprayers/data/lff2018.json')
 
 #+END_SRC
 
 #+RESULTS:
 : --------------------
-: analyze: ../sharedprayers/data/lff2018.json
+: analyze: ../lff2json/lff2018.json
 :
 : Found 271 records
